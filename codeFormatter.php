@@ -937,6 +937,7 @@ final class Reindent extends FormatterPass {
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr       = $index;
+			$found_stack     = [];
 			switch ($id) {
 				case T_START_HEREDOC:
 					$this->append_code(rtrim($text).$this->get_crlf(), false);
@@ -953,15 +954,22 @@ final class Reindent extends FormatterPass {
 				case ST_BRACKET_OPEN:
 					$this->set_indent(+1);
 					$this->append_code($text, false);
+					$found_stack[] = $id;
 					break;
 				case ST_CURLY_CLOSE:
 				case ST_PARENTHESES_CLOSE:
 				case ST_BRACKET_CLOSE:
-					$this->set_indent(-1);
+					$popped_id = array_pop($found_stack);
+					if (T_FUNCTION == $popped_id) {
+						array_pop($found_stack);
+					} else {
+						$this->set_indent(-1);
+					}
 					$this->append_code($text, false);
 					break;
 				case T_FUNCTION:
 					if ($this->is_token(ST_PARENTHESES_OPEN, true) && !$this->has_ln_before()) {
+						$found_stack[] = $id;
 						$this->set_indent(-1);
 					}
 				default:
