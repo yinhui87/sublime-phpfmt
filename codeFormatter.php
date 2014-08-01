@@ -934,10 +934,10 @@ final class Reindent extends FormatterPass {
 	private function indent($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
+		$found_stack     = [];
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr       = $index;
-			$found_stack     = [];
 			switch ($id) {
 				case T_START_HEREDOC:
 					$this->append_code(rtrim($text).$this->get_crlf(), false);
