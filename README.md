@@ -170,6 +170,7 @@ It runs better with PHP 5.5 or newer installed in the machine running the plugin
 "psr1_and_2":false,
 "php_bin":"/usr/local/bin/php",
 "indent_with_space":false,
-"disable_auto_align":false
+// This allows you to invoke the formatter when you feel like it
+"format_on_save":true
 ```
 
