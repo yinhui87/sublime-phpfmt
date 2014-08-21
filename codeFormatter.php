@@ -1428,7 +1428,7 @@ final class ResizeSpaces extends FormatterPass {
 				case T_TRY:
 				case ST_COMMA:
 				case T_CLONE:
-					$this->append_code($text.$this->get_space(), false);
+					$this->append_code($text.$this->get_space(!$this->is_token(ST_SEMI_COLON)), false);
 					break;
 				case T_EXTENDS:
 				case T_IMPLEMENTS:
@@ -1962,7 +1962,7 @@ final class PSR2ModifierVisibilityStaticOrder extends FormatterPass {
 					}
 					break;
 				case T_STATIC:
-					if (!$this->is_token(array(T_VARIABLE))) {
+					if (!$this->is_token(array(T_VARIABLE)) && !$this->is_token(array(T_NEW), true)) {
 						$static           = $text;
 						$skip_whitespaces = true;
 					} else {
