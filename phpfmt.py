@@ -13,6 +13,8 @@ def dofmt(eself, eview):
     s = sublime.load_settings('phpfmt.sublime-settings')
     debug = s.get("debug", False)
     psr = s.get("psr1_and_2", False)
+    psr1 = s.get("psr1", False)
+    psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
     disable_auto_align = s.get("disable_auto_align", False)
     php_bin = s.get("php_bin", "php")
@@ -47,6 +49,12 @@ def dofmt(eself, eview):
 
         if psr:
             cmd_fmt.append("--psr")
+
+        if psr1:
+            cmd_fmt.append("--psr1")
+
+        if psr2:
+            cmd_fmt.append("--psr2")
 
         if indent_with_space:
             cmd_fmt.append("--indent_with_space")
