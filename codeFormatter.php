@@ -1830,8 +1830,8 @@ final class PSR2LnAfterNamespace extends FormatterPass {
 							list(, $text) = $this->inspect_token();
 							if (1 === substr_count($text, $this->new_line)) {
 								$this->append_code($this->new_line, false);
-								break;
 							}
+							break;
 						} else {
 							$this->append_code($text, false);
 						}
@@ -2079,8 +2079,8 @@ class PsrDecorator {
 	}
 
 	public static function decorate(CodeFormatter $fmt) {
-		self::decoratePSR1($fmt);
-		self::decoratePSR2($fmt);
+		self::PSR1($fmt);
+		self::PSR2($fmt);
 	}
 }
 if (!isset($testEnv)) {
