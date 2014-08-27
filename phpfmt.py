@@ -24,6 +24,11 @@ def dofmt(eself, eview):
     dirnm, sfn = os.path.split(uri)
     ext = os.path.splitext(uri)[1][1:]
 
+    if not os.path.isfile(php_bin) and not php_bin == "php":
+        print("Can't find PHP binary file at "+php_bin)
+        if int(sublime.version()) >= 3000:
+            sublime.error_message("Can't find PHP binary file at "+php_bin)
+
     if debug:
         print("phpfmt:", uri)
 
