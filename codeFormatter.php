@@ -55,6 +55,7 @@ final class AddMissingCurlyBraces extends FormatterPass {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr       = $index;
 			switch ($id) {
+				case T_FOREACH:
 				case T_FOR:
 					$this->append_code($text, false);
 					$paren_count = null;
@@ -1327,6 +1328,7 @@ final class ResizeSpaces extends FormatterPass {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr       = $index;
 			switch ($id) {
+				case '+':
 				case '-':
 					list($prev_id, $prev_text) = $this->inspect_token(-1);
 					list($next_id, $next_text) = $this->inspect_token(+1);
@@ -1369,7 +1371,7 @@ final class ResizeSpaces extends FormatterPass {
 					}
 					break;
 				case '%':
-				case '+':
+
 				case '/':
 
 				case ST_QUESTION:
