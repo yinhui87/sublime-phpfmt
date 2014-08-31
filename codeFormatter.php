@@ -35,7 +35,15 @@ define("ST_QUOTE", '"');
 define("ST_REFERENCE", "&");
 define("ST_SEMI_COLON", ";");
 define("ST_TIMES", "*");
-
+if (!defined("T_POW")) {
+	define("T_POW", "**");
+}
+if (!defined("T_YIELD")) {
+	define("T_YIELD", "yield");
+}
+if (!defined("T_FINALLY")) {
+	define("T_FINALLY", "finally");
+}
 final class AddMissingCurlyBraces extends FormatterPass {
 	public function format($source) {
 		$tmp = $this->addBraces($source);
@@ -1373,6 +1381,7 @@ final class ResizeSpaces extends FormatterPass {
 				case '%':
 
 				case '/':
+				case T_POW:
 
 				case ST_QUESTION:
 				case ST_CONCAT:
