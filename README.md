@@ -162,7 +162,7 @@ $d = new D();
 ### Installation
 Install this plugin through Package Manager.
 
-It runs better with PHP 5.5 or newer installed in the machine running the plugin. Although there are reports saying it works seemingly correctly with PHP 5.3.24, however slow.
+It runs better with PHP 5.5 or newer installed in the machine running the plugin. It works with PHP 5.4 if formatting only PHP 5.4 codes. Do not attempt to format PHP 5.5 code with PHP 5.4 binary.
 
 ### Settings
 ```
