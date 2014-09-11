@@ -162,7 +162,8 @@ $d = new D();
 ### Installation
 ####Requirements
 - **You must have a running copy of PHP on the machine you are running Sublime Text**
-It runs better with PHP 5.5 or newer installed in the machine running the plugin. It works with PHP 5.4 if formatting only PHP 5.4 codes. Do not attempt to format PHP 5.5 code with PHP 5.4 binary.
+
+Plugin runs better with PHP 5.5 or newer installed in the machine running the plugin. It works with PHP 5.4 if formatting only PHP 5.4 codes. *Do not attempt to format PHP 5.5 code with PHP 5.4 binary.*
 
 ####Install this plugin through Package Manager.
 - In Sublime Text press `ctrl+shift+P`
@@ -170,8 +171,8 @@ It runs better with PHP 5.5 or newer installed in the machine running the plugin
 - Choose `phpfmt`
 
 ####Configuration (Windows)
-- Edit configuration file located in %AppData%
-- for field `"php_bin"` enter the path to the php.exe
+- Edit configuration file located at `%AppData%\Sublime Text 2\Packages\phpfmt\phpfmt.sublime-settings`
+- For field `"php_bin"` enter the path to the php.exe
   Example: `"php_bin":"c:/PHP/php.exe"`
 
 ### Settings
