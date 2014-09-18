@@ -177,7 +177,6 @@ Plugin runs better with PHP 5.5 or newer installed in the machine running the pl
 
 ### Settings
 ```
-// This option enabled the experimental formatting which complies either with PSR1, either PSR2 or both standards
 "psr1":false,
 "psr2":false,
 "php_bin":"/usr/local/bin/php",
