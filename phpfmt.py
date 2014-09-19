@@ -7,7 +7,7 @@ import subprocess
 from os.path import dirname, realpath
 
 
-def dofmt(eself, eview):
+def dofmt(eself, eview, refactor_from = None, refactor_to = None):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
@@ -64,8 +64,9 @@ def dofmt(eself, eview):
         if indent_with_space:
             cmd_fmt.append("--indent_with_space")
 
-        if disable_auto_align:
-            cmd_fmt.append("--disable_auto_align")
+        if refactor_from is not None and refactor_to is not None:
+            cmd_fmt.append("--refactor="+refactor_from)
+            cmd_fmt.append("--to="+refactor_to)
 
         cmd_fmt.append(uri)
 
@@ -120,7 +121,6 @@ class FmtSelectCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view)
 
-
 class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
@@ -132,3 +132,25 @@ class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
             s.set("disable_auto_align", True)
 
         sublime.save_settings('phpfmt.sublime-settings')
+
+class RefactorCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        def execute(text):
+            self.token_to = text
+            sublime.message_dialog(self.token_from+' '+self.token_to)
+            dofmt(self, self.view, self.token_from, self.token_to)
+
+        def askForToTokens(text):
+            self.token_from = text
+            self.view.window().show_input_panel('From '+text+' refactor To:', '', execute, None, None)
+
+        uri = self.view.file_name()
+        dirnm, sfn = os.path.split(uri)
+        ext = os.path.splitext(uri)[1][1:]
+
+        if "php" != ext:
+            return False
+
+        self.view.window().show_input_panel('Refactor From:', '', askForToTokens, None, None)
+
+
