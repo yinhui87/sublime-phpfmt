@@ -159,6 +159,13 @@ $d = new D();
 </tr>
 </table>
 
+### Refactor
+phpfmt's Refactor is a smart find&replace command which takes in consideration the context of the tokens. Therefore, it safely skips changes within strings or comment blocks.
+- In Sublime Text press `ctrl+shift+P`
+- Choose `phpfmt: refactor`
+- Type the code which you want it to find.
+- Type the code which you want it to replace with.
+
 ### Installation
 ####Requirements
 - **You must have a running copy of PHP on the machine you are running Sublime Text**
