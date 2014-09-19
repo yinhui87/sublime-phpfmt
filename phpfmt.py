@@ -33,6 +33,8 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None):
         print("phpfmt:", uri)
 
     if "php" != ext:
+        print("phpfmt: not a PHP file")
+        sublime.status_message("phpfmt: not a PHP file")
         return False
 
     cmd_lint = [php_bin,"-l",uri];
@@ -128,9 +130,11 @@ class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
 
         if disable_auto_align:
             s.set("disable_auto_align", False)
+            print("phpfmt: auto align enabled")
             sublime.status_message("phpfmt: auto align enabled")
         else:
             s.set("disable_auto_align", True)
+            print("phpfmt: auto align disabled")
             sublime.status_message("phpfmt: auto align disabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
@@ -151,6 +155,8 @@ class RefactorCommand(sublime_plugin.TextCommand):
         ext = os.path.splitext(uri)[1][1:]
 
         if "php" != ext:
+            print("phpfmt: not a PHP file")
+            sublime.status_message("phpfmt: not a PHP file")
             return False
 
         self.view.window().show_input_panel('Refactor From:', '', askForToTokens, None, None)
