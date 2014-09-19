@@ -128,8 +128,10 @@ class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
 
         if disable_auto_align:
             s.set("disable_auto_align", False)
+            sublime.status_message("phpfmt: auto align enabled")
         else:
             s.set("disable_auto_align", True)
+            sublime.status_message("phpfmt: auto align disabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
