@@ -143,7 +143,6 @@ class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def execute(text):
             self.token_to = text
-            sublime.message_dialog(self.token_from+' '+self.token_to)
             dofmt(self, self.view, self.token_from, self.token_to)
 
         def askForToTokens(text):
