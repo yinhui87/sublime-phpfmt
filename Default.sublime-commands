@@ -1,3 +1,4 @@
 [
-    {"caption": "phpfmt: format now", "command": "fmt_select"}
+    {"caption": "phpfmt: format now", "command": "fmt_select"},
+    {"caption": "phpfmt: toggle auto align", "command": "toggle_auto_align"}
 ]

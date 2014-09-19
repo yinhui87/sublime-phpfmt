@@ -120,3 +120,15 @@ class FmtSelectCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view)
 
+
+class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        disable_auto_align = s.get("disable_auto_align", False)
+
+        if disable_auto_align:
+            s.set("disable_auto_align", False)
+        else:
+            s.set("disable_auto_align", True)
+
+        sublime.save_settings('phpfmt.sublime-settings')
