@@ -31,6 +31,10 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None):
 
     if debug:
         print("phpfmt:", uri)
+        if disable_auto_align:
+            print("auto align: disabled")
+        else:
+            print("auto align: enabled")
 
     if "php" != ext:
         print("phpfmt: not a PHP file")
@@ -65,6 +69,9 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None):
 
         if indent_with_space:
             cmd_fmt.append("--indent_with_space")
+
+        if disable_auto_align:
+            cmd_fmt.append("--disable_auto_align")
 
         if refactor_from is not None and refactor_to is not None:
             cmd_fmt.append("--refactor="+refactor_from)
