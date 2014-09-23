@@ -17,6 +17,7 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None):
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
     disable_auto_align = s.get("disable_auto_align", False)
+    visibility_order = s.get("visibility_order", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -72,6 +73,9 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None):
 
         if disable_auto_align:
             cmd_fmt.append("--disable_auto_align")
+
+        if visibility_order:
+            cmd_fmt.append("--visibility_order")
 
         if refactor_from is not None and refactor_to is not None:
             cmd_fmt.append("--refactor="+refactor_from)
@@ -143,6 +147,22 @@ class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
             s.set("disable_auto_align", True)
             print("phpfmt: auto align disabled")
             sublime.status_message("phpfmt: auto align disabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleVisibilityOrderCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        visibility_order = s.get("visibility_order", False)
+
+        if visibility_order:
+            s.set("visibility_order", False)
+            print("phpfmt: visibility order enabled")
+            sublime.status_message("phpfmt: visibility order enabled")
+        else:
+            s.set("visibility_order", True)
+            print("phpfmt: visibility order disabled")
+            sublime.status_message("phpfmt: visibility order disabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
