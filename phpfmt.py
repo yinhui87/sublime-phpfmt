@@ -166,6 +166,70 @@ class ToggleVisibilityOrderCommand(sublime_plugin.TextCommand):
 
         sublime.save_settings('phpfmt.sublime-settings')
 
+class ToggleIndentWithSpaceCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        indent_with_space = s.get("indent_with_space", False)
+
+        if indent_with_space:
+            s.set("indent_with_space", False)
+            print("phpfmt: indent with space enabled")
+            sublime.status_message("phpfmt: indent with space enabled")
+        else:
+            s.set("indent_with_space", True)
+            print("phpfmt: indent with space disabled")
+            sublime.status_message("phpfmt: indent with space disabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class TogglePsrOneCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        psr1 = s.get("psr1", False)
+
+        if psr1:
+            s.set("psr1", False)
+            print("phpfmt: PSR1 enabled")
+            sublime.status_message("phpfmt: PSR1 enabled")
+        else:
+            s.set("psr1", True)
+            print("phpfmt: PSR1 disabled")
+            sublime.status_message("phpfmt: PSR1 disabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class TogglePsrTwoCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        psr2 = s.get("psr2", False)
+
+        if psr2:
+            s.set("psr2", False)
+            print("phpfmt: PSR2 enabled")
+            sublime.status_message("phpfmt: PSR2 enabled")
+        else:
+            s.set("psr2", True)
+            print("phpfmt: PSR2 disabled")
+            sublime.status_message("phpfmt: PSR2 disabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleFormatOnSaveCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        format_on_save = s.get("format_on_save", False)
+
+        if format_on_save:
+            s.set("format_on_save", False)
+            print("phpfmt: format on save enabled")
+            sublime.status_message("phpfmt: format on save enabled")
+        else:
+            s.set("format_on_save", True)
+            print("phpfmt: format on save disabled")
+            sublime.status_message("phpfmt: format on save disabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
 class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def execute(text):
@@ -186,5 +250,3 @@ class RefactorCommand(sublime_plugin.TextCommand):
             return False
 
         self.view.window().show_input_panel('Refactor From:', '', askForToTokens, None, None)
-
-

@@ -1,6 +1,10 @@
 [
     {"caption": "phpfmt: format now", "command": "fmt_select"},
     {"caption": "phpfmt: toggle auto align", "command": "toggle_auto_align"},
+    {"caption": "phpfmt: toggle indent with space", "command": "toggle_indent_with_space"},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle_visibility_order"},
+    {"caption": "phpfmt: toggle PSR1", "command": "toggle_psr_one"},
+    {"caption": "phpfmt: toggle PSR2", "command": "toggle_psr_two"},
+    {"caption": "phpfmt: toggle format on save", "command": "toggle_format_on_save"},
     {"caption": "phpfmt: refactor", "command": "refactor"}
 ]
