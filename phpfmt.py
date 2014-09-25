@@ -160,12 +160,12 @@ class ToggleVisibilityOrderCommand(sublime_plugin.TextCommand):
 
         if visibility_order:
             s.set("visibility_order", False)
-            print("phpfmt: visibility order enabled")
-            sublime.status_message("phpfmt: visibility order enabled")
-        else:
-            s.set("visibility_order", True)
             print("phpfmt: visibility order disabled")
             sublime.status_message("phpfmt: visibility order disabled")
+        else:
+            s.set("visibility_order", True)
+            print("phpfmt: visibility order enabled")
+            sublime.status_message("phpfmt: visibility order enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
@@ -176,12 +176,12 @@ class ToggleIndentWithSpaceCommand(sublime_plugin.TextCommand):
 
         if indent_with_space:
             s.set("indent_with_space", False)
-            print("phpfmt: indent with space enabled")
-            sublime.status_message("phpfmt: indent with space enabled")
-        else:
-            s.set("indent_with_space", True)
             print("phpfmt: indent with space disabled")
             sublime.status_message("phpfmt: indent with space disabled")
+        else:
+            s.set("indent_with_space", True)
+            print("phpfmt: indent with space enabled")
+            sublime.status_message("phpfmt: indent with space enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
@@ -192,12 +192,12 @@ class TogglePsrOneCommand(sublime_plugin.TextCommand):
 
         if psr1:
             s.set("psr1", False)
-            print("phpfmt: PSR1 enabled")
-            sublime.status_message("phpfmt: PSR1 enabled")
-        else:
-            s.set("psr1", True)
             print("phpfmt: PSR1 disabled")
             sublime.status_message("phpfmt: PSR1 disabled")
+        else:
+            s.set("psr1", True)
+            print("phpfmt: PSR1 enable")
+            sublime.status_message("phpfmt: PSR1 enable")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
@@ -208,12 +208,12 @@ class TogglePsrTwoCommand(sublime_plugin.TextCommand):
 
         if psr2:
             s.set("psr2", False)
-            print("phpfmt: PSR2 enabled")
-            sublime.status_message("phpfmt: PSR2 enabled")
-        else:
-            s.set("psr2", True)
             print("phpfmt: PSR2 disabled")
             sublime.status_message("phpfmt: PSR2 disabled")
+        else:
+            s.set("psr2", True)
+            print("phpfmt: PSR2 enabled")
+            sublime.status_message("phpfmt: PSR2 enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
@@ -224,12 +224,12 @@ class ToggleFormatOnSaveCommand(sublime_plugin.TextCommand):
 
         if format_on_save:
             s.set("format_on_save", False)
-            print("phpfmt: format on save enabled")
-            sublime.status_message("phpfmt: format on save enabled")
-        else:
-            s.set("format_on_save", True)
             print("phpfmt: format on save disabled")
             sublime.status_message("phpfmt: format on save disabled")
+        else:
+            s.set("format_on_save", True)
+            print("phpfmt: format on save enabled")
+            sublime.status_message("phpfmt: format on save enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
