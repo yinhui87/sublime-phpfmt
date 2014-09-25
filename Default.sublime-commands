@@ -6,5 +6,8 @@
     {"caption": "phpfmt: toggle PSR1", "command": "toggle_psr_one"},
     {"caption": "phpfmt: toggle PSR2", "command": "toggle_psr_two"},
     {"caption": "phpfmt: toggle format on save", "command": "toggle_format_on_save"},
-    {"caption": "phpfmt: refactor", "command": "refactor"}
+    {"caption": "phpfmt: refactor", "command": "refactor"},
+    {"caption": "phpfmt: getter and setter (snake_case)", "command": "sgter_snake"},
+    {"caption": "phpfmt: getter and setter (camelCase)", "command": "sgter_camel"},
+    {"caption": "phpfmt: getter and setter (Go)", "command": "sgter_go"}
 ]

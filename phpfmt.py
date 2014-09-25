@@ -7,7 +7,7 @@ import subprocess
 from os.path import dirname, realpath
 
 
-def dofmt(eself, eview, refactor_from = None, refactor_to = None):
+def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
@@ -80,6 +80,9 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None):
         if refactor_from is not None and refactor_to is not None:
             cmd_fmt.append("--refactor="+refactor_from)
             cmd_fmt.append("--to="+refactor_to)
+
+        if sgter is not None:
+            cmd_fmt.append("--setters_and_getters="+sgter)
 
         cmd_fmt.append(uri)
 
@@ -250,3 +253,15 @@ class RefactorCommand(sublime_plugin.TextCommand):
             return False
 
         self.view.window().show_input_panel('Refactor From:', '', askForToTokens, None, None)
+
+class SgterSnakeCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        dofmt(self, self.view, None, None, 'snake')
+
+class SgterCamelCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        dofmt(self, self.view, None, None, 'camel')
+
+class SgterGoCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        dofmt(self, self.view, None, None, 'golang')
