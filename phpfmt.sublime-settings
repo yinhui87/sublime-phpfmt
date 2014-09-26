@@ -3,6 +3,6 @@
 // "psr2":false,
 // "php_bin":"/usr/local/bin/php",
 // "indent_with_space":false,
-// "disable_auto_align":false,
+"disable_auto_align":true,
 // "format_on_save":true
 }
