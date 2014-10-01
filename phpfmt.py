@@ -58,6 +58,8 @@ def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
     if sgter is not None:
         cmd_fmt.append("--setters_and_getters="+sgter)
 
+    cmd_fmt.append("--timing")
+
     if debug:
         print("cmd_fmt (sel): ", cmd_fmt)
 
@@ -74,12 +76,8 @@ def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
     bufferedCode = bytes(code, 'utf-8');
     res, err = p.communicate(input=bufferedCode)
 
-    if err:
-        if debug:
-            print("err (sel): ", err)
-        return originalCode
-    else:
-        return res.decode('utf-8').replace('<?php/*REMOVEME*/'+"\n", '')
+    print("err:\n", err.decode('utf-8'))
+    return res.decode('utf-8').replace('<?php/*REMOVEME*/'+"\n", '')
 
 
 def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
@@ -159,6 +157,8 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
 
+        cmd_fmt.append("--timing")
+
         cmd_fmt.append(uri)
 
         uri_tmp = uri + "~"
@@ -173,20 +173,17 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
         else:
             p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         res, err = p.communicate()
-        if err:
-            if debug:
-                print("err: ", err)
+        print("err:\n", err.decode('utf-8'))
+        if int(sublime.version()) < 3000:
+            with open(uri_tmp, 'w+') as f:
+                f.write(res)
         else:
-            if int(sublime.version()) < 3000:
-                with open(uri_tmp, 'w+') as f:
-                    f.write(res)
-            else:
-                with open(uri_tmp, 'bw+') as f:
-                    f.write(res)
-            if debug:
-                print("Stored:", len(res), "bytes")
-            shutil.move(uri_tmp, uri)
-            sublime.set_timeout(revert_active_window, 50)
+            with open(uri_tmp, 'bw+') as f:
+                f.write(res)
+        if debug:
+            print("Stored:", len(res), "bytes")
+        shutil.move(uri_tmp, uri)
+        sublime.set_timeout(revert_active_window, 50)
     else:
         print("lint error: ", lint_out)
 
