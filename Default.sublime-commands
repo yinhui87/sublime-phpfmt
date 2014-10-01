@@ -1,5 +1,6 @@
 [
-    {"caption": "phpfmt: format now", "command": "fmt_select"},
+    {"caption": "phpfmt: format now", "command": "fmt_now"},
+    {"caption": "phpfmt: format selection", "command": "fmt_select"},
     {"caption": "phpfmt: toggle auto align", "command": "toggle_auto_align"},
     {"caption": "phpfmt: toggle indent with space", "command": "toggle_indent_with_space"},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle_visibility_order"},
