@@ -252,7 +252,12 @@ class RefactorCommand(sublime_plugin.TextCommand):
             sublime.status_message("phpfmt: not a PHP file")
             return False
 
-        self.view.window().show_input_panel('Refactor From:', '', askForToTokens, None, None)
+        s = ""
+        for region in self.view.sel():
+            if not region.empty():
+                s = self.view.substr(region)
+
+        self.view.window().show_input_panel('Refactor From:', s, askForToTokens, None, None)
 
 class SgterSnakeCommand(sublime_plugin.TextCommand):
     def run(self, edit):
