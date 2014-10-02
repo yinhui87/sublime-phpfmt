@@ -103,6 +103,20 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
         if int(sublime.version()) >= 3000:
             sublime.error_message("Can't find PHP binary file at "+php_bin)
 
+    # Look for oracle.serialize
+    oracleDirNm = dirnm
+    while oracleDirNm != "/":
+        oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+        if os.path.isfile(oracleFname):
+            break
+        oracleDirNm = os.path.dirname(oracleDirNm)
+
+    if not os.path.isfile(oracleFname):
+        print("phpfmt (oracle file): not found")
+        oracleFname = None
+    else:
+        print("phpfmt (oracle file): "+oracleFname)
+
     if debug:
         print("phpfmt:", uri)
         if disable_auto_align:
@@ -156,6 +170,9 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
 
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
+
+        if oracleFname is not None:
+            cmd_fmt.append("--oracleDB="+oracleFname)
 
         cmd_fmt.append("--timing")
 
