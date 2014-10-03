@@ -1,7 +1,7 @@
 <?php
 
 class ClassParser extends Parser {
-	private function detectsNamespace($tokens) {
+	private function detectsNamespace() {
 		$namespace = '';
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
@@ -28,7 +28,7 @@ class ClassParser extends Parser {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
 
-		$namespace = $this->detectsNamespace($this->tkns);
+		$namespace = $this->detectsNamespace();
 		reset($this->tkns);
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
@@ -83,6 +83,110 @@ class ClassParser extends Parser {
 		];
 	}
 }
+
+class ClassMethodParser extends Parser {
+	private function detectsNamespace() {
+		$namespace = '';
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case T_NAMESPACE:
+					do {
+						list($id, $text) = $this->walk_next_token();
+						if (T_WHITESPACE === $id) {
+							continue;
+						}
+						$namespace .= $text;
+					} while ($id != ';');
+					break 2;
+			}
+		}
+		$namespace = substr($namespace, 0, -1) . '\\';
+		return $namespace;
+	}
+	private function parseMethods($namespace, $className, $tokens) {
+		$ptr = 0;
+		$methodList = [];
+		while (list($index, $token) = each($tokens)) {
+			list($id, $text) = $this->get_token($token);
+			$ptr = $index;
+			switch ($id) {
+				case T_FUNCTION:
+					list($id, $text) = $this->walk_next_token_ref($tokens, $ptr);
+					if ('(' == $text) {
+						break;
+					}
+					if (T_STRING == $id) {
+						$functionName = $text;
+					}
+
+					if ($functionName == "__construct") {
+						$functionName = $className;
+						$functionCall = $className;
+						$functionSignature = $className;
+					} else {
+						$functionCall = $functionName;
+						$functionSignature = $functionName;
+					}
+					do {
+						list($id, $text) = $this->walk_next_token_ref($tokens, $ptr);
+						if (T_VARIABLE == $id) {
+							$functionSignature .= ' ';
+							$functionCall .= ' ';
+						}
+						if (T_VARIABLE == $id || ',' == $text || '(' == $text || ')' == $text) {
+							$functionCall .= $text;
+						}
+						$functionSignature .= $text;
+					} while ($id != ')');
+					$methodList[] = [
+						$functionName,
+						str_replace('( ', '(', $functionCall),
+						str_replace('( ', '(', $functionSignature),
+					];
+					break;
+			}
+		}
+		return $methodList;
+	}
+	public function parse($source) {
+		$this->tkns = token_get_all($source);
+		$this->code = '';
+
+		$foundMethods = [];
+		$namespace = $this->detectsNamespace();
+		reset($this->tkns);
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case T_CLASS:
+					list($id, $text) = $this->walk_next_token();
+					$className = $text;
+					do {
+						list($id, $text) = $this->walk_next_token();
+					} while ($id != '{');
+					$classBody = [$text];
+					$curlyLevel = 1;
+					do {
+						list($id, $text) = $this->walk_next_token();
+						if ($id == '{') {
+							$curlyLevel++;
+						}
+						if ($id == '}') {
+							$curlyLevel--;
+						}
+						$classBody[] = [$id, $text];
+					} while ($curlyLevel > 0);
+					$foundMethods[$namespace . $className] = $this->parseMethods($namespace, $className, $classBody);
+					break;
+			}
+		}
+		return $foundMethods;
+	}
+}
+
 abstract class Parser {
 	protected $filename = '';
 	protected $debug = '';
@@ -183,6 +287,16 @@ abstract class Parser {
 		}
 		return $this->get_token($this->tkns[$i]);
 	}
+	protected function walk_next_token_ref(&$tokens, &$ptr) {
+		$i = $ptr;
+		$sizeof_tokens = sizeof($tokens);
+		while (++$i <= $sizeof_tokens && is_array($tokens[$i]) && $tokens[$i][0] === T_WHITESPACE);
+		$ptr = $i;
+		if (!isset($tokens[$i])) {
+			return null;
+		}
+		return $this->get_token($tokens[$i]);
+	}
 	protected function has_ln_after() {
 		$id = null;
 		$text = null;
@@ -238,6 +352,7 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 	$all_classes = [];
 	$all_extends = [];
 	$all_implements = [];
+	$all_methods = [];
 	foreach ($files as $file) {
 		$file = $file[0];
 		foreach ((array) $ignoreList as $ignore) {
@@ -254,9 +369,11 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 		$content = file_get_contents($file);
 
 		list($class, $extends, $implements) = (new ClassParser($file, $debug))->parse($content);
+		$methods = (new ClassMethodParser($file, $debug))->parse($content);
 		$all_classes = array_merge_recursive($all_classes, $class);
 		$all_extends = array_merge_recursive($all_extends, $extends);
 		$all_implements = array_merge_recursive($all_implements, $implements);
+		$all_methods = array_merge_recursive($all_methods, $methods);
 	}
 	fwrite(STDERR, "Serializing and storing..." . PHP_EOL);
 	file_put_contents(
@@ -264,6 +381,7 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 			'all_classes' => $all_classes,
 			'all_extends' => $all_extends,
 			'all_implements' => $all_implements,
+			'all_methods' => $all_methods,
 		])
 	);
 } else {
@@ -275,6 +393,7 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 	$all_classes = $db['all_classes'];
 	$all_extends = $db['all_extends'];
 	$all_implements = $db['all_implements'];
+	$all_methods = $db['all_methods'];
 }
 
 if ("implements" == $cmd) {
@@ -327,6 +446,11 @@ if ("class" == $cmd) {
 }
 
 if ("autocomplete" == $cmd) {
+	$searchFor = $argv[2];
+	$searchForLen = strlen($argv[2]);
+
+	echo "term,match,class,type\n";
+
 	$words = array_map(function ($v) {
 		if (substr($v, 0, 1) == '\\') {
 			$v = substr($v, 1);
@@ -334,20 +458,24 @@ if ("autocomplete" == $cmd) {
 		return $v;
 	}, array_keys($all_classes));
 	sort($words);
-	$searchFor = $argv[2];
-	$searchForLen = strlen($argv[2]);
 	$words = array_unique(
 		array_filter($words, function ($v) use ($searchFor) {
 			return false !== stripos($v, $searchFor);
 		})+
 		array_filter($words, function ($v) use ($searchFor, $searchForLen) {
-			return substr($v, 0, $searchForLen) == $v;
+			return substr($v, 0, $searchForLen) == $searchFor;
 		})
 	);
-
-	echo "term,match\n";
 	array_walk($words, function ($v) {
 		$tmp = explode('\\', $v);
-		fputcsv(STDOUT, [$v, array_pop($tmp)], ',', '"');
+		fputcsv(STDOUT, [$v, array_pop($tmp), $v, 'class'], ',', '"');
 	});
+
+	foreach ($all_methods as $class => $methods) {
+		foreach ($methods as $method) {
+			if(false !== stripos($method[0], $searchFor) || substr($method[0], 0, $searchForLen) == $searchFor){
+				fputcsv(STDOUT, [$method[1], $method[2], $class, 'method'], ',', '"');
+			}
+		}
+	}
 }

@@ -435,9 +435,8 @@ class PHPFmtComplete(sublime_plugin.EventListener):
         if not ('source.php.embedded.block.html' in scopes or 'source.php' in scopes):
             return []
 
-        print("in scopes");
-        print(pos);
-        print(prefix);
+
+        print("phpfmt (autocomplete): "+prefix);
 
         comps = []
 
@@ -474,14 +473,20 @@ class PHPFmtComplete(sublime_plugin.EventListener):
         reader = csv.reader(f, delimiter=',')
         for row in reader:
             if len(row) > 0:
-                comps.append((
-                    '%s \t %s \t %s' % (row[1], row[0], "class"),
-                    '%s(${0})' % (row[1]),
-                ))
-                comps.append((
-                    '%s \t %s \t %s' % (row[0], row[0], "class"),
-                    '%s(${0})' % (row[0]),
-                ))
+                if "class" == row[3]:
+                    comps.append((
+                        '%s \t %s \t %s' % (row[1], row[0], "class"),
+                        '%s(${0})' % (row[1]),
+                    ))
+                    comps.append((
+                        '%s \t %s \t %s' % (row[0], row[0], "class"),
+                        '%s(${0})' % (row[0]),
+                    ))
+                if "method" == row[3]:
+                    comps.append((
+                        '%s \t %s \t %s' % (row[1], row[2], "method"),
+                        '%s' % (row[0].replace('$','\$')),
+                    ))
 
         # todo: support for namespace
         # prj = sublime.active_window().project_data()
