@@ -333,6 +333,22 @@ class ToggleFormatOnSaveCommand(sublime_plugin.TextCommand):
 
         sublime.save_settings('phpfmt.sublime-settings')
 
+class ToggleAutocompleteCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        autocomplete = s.get("autocomplete", False)
+
+        if autocomplete:
+            s.set("autocomplete", False)
+            print("phpfmt: autocomplete disabled")
+            sublime.status_message("phpfmt: autocomplete disabled")
+        else:
+            s.set("autocomplete", True)
+            print("phpfmt: autocomplete enabled")
+            sublime.status_message("phpfmt: autocomplete enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
 class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def execute(text):
@@ -416,7 +432,7 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
 
         if not os.path.isfile(oracleFname):
             print("phpfmt (oracle file): not found -- dialog")
-            self.view.window().show_input_panel('phpfmt oracle - directory to store db:', originalDirNm, askForDirectory, None, None)
+            self.view.window().show_input_panel('phpfmt - input the directory within project to store autocomplete db:', originalDirNm, askForDirectory, None, None)
         else:
             print("phpfmt (oracle file): "+oracleFname)
             print("phpfmt (oracle dir): "+oracleDirNm)
@@ -430,6 +446,12 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
 
 class PHPFmtComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+
+        autocomplete = s.get("autocomplete", False)
+        if autocomplete is False:
+                return []
+
         pos = locations[0]
         scopes = view.scope_name(pos).split()
         if not ('source.php.embedded.block.html' in scopes or 'source.php' in scopes):
@@ -452,7 +474,9 @@ class PHPFmtComplete(sublime_plugin.EventListener):
                 break
             oracleDirNm = os.path.dirname(oracleDirNm)
 
-        s = sublime.load_settings('phpfmt.sublime-settings')
+        if not os.path.isfile(oracleFname):
+            return []
+
         php_bin = s.get("php_bin", "php")
         oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
         cmdOracle = [php_bin]
