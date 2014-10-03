@@ -389,7 +389,7 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
             res, err = p.communicate()
             print("phpfmt (oracle): "+res.decode('utf-8'))
             print("phpfmt (oracle) err: "+err.decode('utf-8'))
-
+            sublime.status_message("phpfmt (oracle): done")
 
         #sublime.set_timeout_async(self.long_command, 0)
         def askForDirectory(text):
