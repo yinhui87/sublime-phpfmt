@@ -325,3 +325,29 @@ if ("class" == $cmd) {
 
 	echo PHP_EOL;
 }
+
+if ("autocomplete" == $cmd) {
+	$words = array_map(function ($v) {
+		if (substr($v, 0, 1) == '\\') {
+			$v = substr($v, 1);
+		}
+		return $v;
+	}, array_keys($all_classes));
+	sort($words);
+	$searchFor = $argv[2];
+	$searchForLen = strlen($argv[2]);
+	$words = array_unique(
+		array_filter($words, function ($v) use ($searchFor) {
+			return false !== stripos($v, $searchFor);
+		})+
+		array_filter($words, function ($v) use ($searchFor, $searchForLen) {
+			return substr($v, 0, $searchForLen) == $v;
+		})
+	);
+
+	echo "term,match\n";
+	array_walk($words, function ($v) {
+		$tmp = explode('\\', $v);
+		fputcsv(STDOUT, [$v, array_pop($tmp)], ',', '"');
+	});
+}

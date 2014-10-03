@@ -1,3 +1,4 @@
+import csv
 import os
 import os.path
 import shutil
@@ -424,3 +425,75 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
                 sublime.set_timeout_async(buildDB, 0)
             else:
                 sublime.set_timeout(buildDB, 50)
+
+
+
+class PHPFmtComplete(sublime_plugin.EventListener):
+    def on_query_completions(self, view, prefix, locations):
+        pos = locations[0]
+        scopes = view.scope_name(pos).split()
+        if not ('source.php.embedded.block.html' in scopes or 'source.php' in scopes):
+            return []
+
+        print("in scopes");
+        print(pos);
+        print(prefix);
+
+        comps = []
+
+        uri = view.file_name()
+        dirNm, sfn = os.path.split(uri)
+        ext = os.path.splitext(uri)[1][1:]
+
+
+        oracleDirNm = dirNm
+        while oracleDirNm != "/":
+            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            if os.path.isfile(oracleFname):
+                break
+            oracleDirNm = os.path.dirname(oracleDirNm)
+
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        php_bin = s.get("php_bin", "php")
+        oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
+        cmdOracle = [php_bin]
+        cmdOracle.append(oraclePath)
+        cmdOracle.append("autocomplete")
+        cmdOracle.append(prefix)
+        print(cmdOracle)
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
+        res, err = p.communicate()
+        print("phpfmt (autocomplete) err: "+err.decode('utf-8'))
+
+        f = res.decode('utf-8').split('\n')
+        reader = csv.reader(f, delimiter=',')
+        for row in reader:
+            if len(row) > 0:
+                comps.append((
+                    '%s \t %s \t %s' % (row[1], row[0], "class"),
+                    '%s(${0})' % (row[1]),
+                ))
+                comps.append((
+                    '%s \t %s \t %s' % (row[0], row[0], "class"),
+                    '%s(${0})' % (row[0]),
+                ))
+
+        # todo: support for namespace
+        # prj = sublime.active_window().project_data()
+        # if(len(prj) > 0):
+        #     uri = view.file_name()
+        #     dirnm, sfn = os.path.split(uri)
+        #     dirnm = dirnm.replace(prj['folders'][0]['path'], '')
+        #     ns = dirnm.replace('/', '\\')
+        #     print(ns)
+        #     # comps.append((
+        #         # '%s ...\...;\t %s' % ("namespace", "namespace"),
+        #         # '%s %s' % ("namespace", dirnm),
+        #     # ))
+
+        return comps
