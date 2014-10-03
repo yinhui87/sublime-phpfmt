@@ -369,3 +369,58 @@ class SgterCamelCommand(sublime_plugin.TextCommand):
 class SgterGoCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view, None, None, 'golang')
+
+class BuildOracleCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        def buildDB():
+            s = sublime.load_settings('phpfmt.sublime-settings')
+            php_bin = s.get("php_bin", "php")
+            oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
+            cmdOracle = [php_bin]
+            cmdOracle.append(oraclePath)
+            cmdOracle.append("flush")
+            cmdOracle.append(self.dirNm)
+            if os.name == 'nt':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.dirNm, shell=False, startupinfo=startupinfo)
+            else:
+                p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.dirNm, shell=False)
+            res, err = p.communicate()
+            print("phpfmt (oracle): "+res.decode('utf-8'))
+            print("phpfmt (oracle) err: "+err.decode('utf-8'))
+
+
+        #sublime.set_timeout_async(self.long_command, 0)
+        def askForDirectory(text):
+            self.dirNm = text
+            if int(sublime.version()) >= 3000:
+                sublime.set_timeout_async(buildDB, 0)
+            else:
+                sublime.set_timeout(buildDB, 50)
+
+        view = self.view
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        php_bin = s.get("php_bin", "php")
+
+        uri = view.file_name()
+        oracleDirNm, sfn = os.path.split(uri)
+        originalDirNm = oracleDirNm
+
+        while oracleDirNm != "/":
+            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            if os.path.isfile(oracleFname):
+                break
+            oracleDirNm = os.path.dirname(oracleDirNm)
+
+        if not os.path.isfile(oracleFname):
+            print("phpfmt (oracle file): not found -- dialog")
+            self.view.window().show_input_panel('phpfmt oracle - directory to store db:', originalDirNm, askForDirectory, None, None)
+        else:
+            print("phpfmt (oracle file): "+oracleFname)
+            print("phpfmt (oracle dir): "+oracleDirNm)
+            self.dirNm = oracleDirNm
+            if int(sublime.version()) >= 3000:
+                sublime.set_timeout_async(buildDB, 0)
+            else:
+                sublime.set_timeout(buildDB, 50)

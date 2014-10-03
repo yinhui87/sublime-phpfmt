@@ -10,5 +10,6 @@
     {"caption": "phpfmt: refactor", "command": "refactor"},
     {"caption": "phpfmt: getter and setter (snake_case)", "command": "sgter_snake"},
     {"caption": "phpfmt: getter and setter (camelCase)", "command": "sgter_camel"},
-    {"caption": "phpfmt: getter and setter (Go)", "command": "sgter_go"}
+    {"caption": "phpfmt: getter and setter (Go)", "command": "sgter_go"},
+    {"caption": "phpfmt: build oracle database", "command": "build_oracle"}
 ]
