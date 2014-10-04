@@ -434,7 +434,11 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
             oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
             if os.path.isfile(oracleFname):
                 break
+            origOracleDirNm = oracleDirNm
             oracleDirNm = os.path.dirname(oracleDirNm)
+            if origOracleDirNm == oracleDirNm:
+                break
+
 
         if not os.path.isfile(oracleFname):
             print("phpfmt (oracle file): not found -- dialog")
@@ -478,7 +482,11 @@ class PHPFmtComplete(sublime_plugin.EventListener):
             oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
             if os.path.isfile(oracleFname):
                 break
+            origOracleDirNm = oracleDirNm
             oracleDirNm = os.path.dirname(oracleDirNm)
+            if origOracleDirNm == oracleDirNm:
+                break
+
 
         if not os.path.isfile(oracleFname):
             sublime.status_message("phpfmt: autocomplete database not found")
