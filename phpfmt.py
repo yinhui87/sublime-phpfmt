@@ -487,7 +487,14 @@ class PHPFmtComplete(sublime_plugin.EventListener):
                 '%s \t %s \t %s' % ("namespace", ns, "namespace"),
                 '%s %s;\n${0}' % ("namespace", ns),
             ))
-            return comps
+
+        if prefix in "class":
+            print("class guess")
+            className = sfn.split(".")[0]
+            comps.append((
+                '%s \t %s \t %s' % ("class", className, "class"),
+                '%s %s {\n\t${0}\n}\n' % ("class", className),
+            ))
 
         php_bin = s.get("php_bin", "php")
         oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
