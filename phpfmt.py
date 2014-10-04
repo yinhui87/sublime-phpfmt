@@ -408,6 +408,7 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
             print("phpfmt (oracle) err: "+err.decode('utf-8'))
             sublime.status_message("phpfmt (oracle): done")
 
+
         #sublime.set_timeout_async(self.long_command, 0)
         def askForDirectory(text):
             self.dirNm = text
@@ -475,7 +476,18 @@ class PHPFmtComplete(sublime_plugin.EventListener):
             oracleDirNm = os.path.dirname(oracleDirNm)
 
         if not os.path.isfile(oracleFname):
+            sublime.status_message("phpfmt: autocomplete database not found")
             return []
+
+        if prefix in "namespace":
+            ns = dirNm.replace(oracleDirNm, '').replace('/','\\')
+            if ns.startswith('\\'):
+                ns = ns[1:]
+            comps.append((
+                '%s \t %s \t %s' % ("namespace", ns, "namespace"),
+                '%s %s;\n${0}' % ("namespace", ns),
+            ))
+            return comps
 
         php_bin = s.get("php_bin", "php")
         oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
@@ -511,18 +523,5 @@ class PHPFmtComplete(sublime_plugin.EventListener):
                         '%s \t %s \t %s' % (row[1], row[2], "method"),
                         '%s' % (row[0].replace('$','\$')),
                     ))
-
-        # todo: support for namespace
-        # prj = sublime.active_window().project_data()
-        # if(len(prj) > 0):
-        #     uri = view.file_name()
-        #     dirnm, sfn = os.path.split(uri)
-        #     dirnm = dirnm.replace(prj['folders'][0]['path'], '')
-        #     ns = dirnm.replace('/', '\\')
-        #     print(ns)
-        #     # comps.append((
-        #         # '%s ...\...;\t %s' % ("namespace", "namespace"),
-        #         # '%s %s' % ("namespace", dirnm),
-        #     # ))
 
         return comps
