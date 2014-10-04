@@ -7,6 +7,80 @@ import sublime_plugin
 import subprocess
 from os.path import dirname, realpath
 
+def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
+    s = sublime.load_settings('phpfmt.sublime-settings')
+    debug = s.get("debug", False)
+    psr = s.get("psr1_and_2", False)
+    psr1 = s.get("psr1", False)
+    psr2 = s.get("psr2", False)
+    indent_with_space = s.get("indent_with_space", False)
+    disable_auto_align = s.get("disable_auto_align", False)
+    visibility_order = s.get("visibility_order", False)
+    php_bin = s.get("php_bin", "php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
+
+    if debug:
+        print("phpfmt (sel):", code)
+        if disable_auto_align:
+            print("auto align (sel): disabled")
+        else:
+            print("auto align (sel): enabled")
+
+
+    cmd_fmt = [php_bin]
+
+    if debug:
+        cmd_fmt.append("-ddisplay_errors=0")
+
+    cmd_fmt.append(formatter_path)
+
+    if psr:
+        cmd_fmt.append("--psr")
+
+    if psr1:
+        cmd_fmt.append("--psr1")
+
+    if psr2:
+        cmd_fmt.append("--psr2")
+
+    if indent_with_space:
+        cmd_fmt.append("--indent_with_space")
+
+    if disable_auto_align:
+        cmd_fmt.append("--disable_auto_align")
+
+    if visibility_order:
+        cmd_fmt.append("--visibility_order")
+
+    if refactor_from is not None and refactor_to is not None:
+        cmd_fmt.append("--refactor="+refactor_from)
+        cmd_fmt.append("--to="+refactor_to)
+
+    if sgter is not None:
+        cmd_fmt.append("--setters_and_getters="+sgter)
+
+    cmd_fmt.append("--timing")
+
+    if debug:
+        print("cmd_fmt (sel): ", cmd_fmt)
+
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+    else:
+        p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+
+    originalCode = code
+    if "<?" != originalCode[:2]:
+        code = '<?php/*REMOVEME*/'+"\n"+code;
+    bufferedCode = bytes(code, 'utf-8');
+    res, err = p.communicate(input=bufferedCode)
+
+    print("err:\n", err.decode('utf-8'))
+    return res.decode('utf-8').replace('<?php/*REMOVEME*/'+"\n", '')
+
+
 def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
     self = eself
     view = eview
