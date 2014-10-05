@@ -479,6 +479,20 @@ if ("introspect" == $cmd) {
 			introspectClass($found_classes);
 		}
 	}
+	ob_start();
+	$foundMethod = false;
+	foreach ($all_methods as $class => $methods) {
+		foreach ($methods as $method) {
+			if (substr($method[0], 0, strlen($target)) == $target) {
+				$foundMethod = true;
+				echo ' - ' . $class . '::' . $method[2], PHP_EOL;
+			}
+		}
+	}
+	$methodOutput = ob_get_clean();
+	if ($foundMethod) {
+		echo "Methods", PHP_EOL, $methodOutput;
+	}
 }
 
 if ("autocomplete" == $cmd) {
