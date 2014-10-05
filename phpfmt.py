@@ -229,6 +229,53 @@ class phpfmt(sublime_plugin.EventListener):
         if format_on_save:
             dofmt(self, view)
 
+def outputToPanel(eself, eedit, message):
+        eself.output_view = eself.view.window().get_output_panel("phporacleintrospect")
+        eself.view.window().run_command("show_panel", {"panel": "output.phporacleintrospect"})
+        eself.output_view.set_read_only(False)
+        eself.output_view.insert(eedit, eself.output_view.size(), message)
+        eself.output_view.set_read_only(True)
+
+class AnalyseThisCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        lookTerm = (self.view.substr(self.view.word(self.view.sel()[0].a)))
+
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        php_bin = s.get("php_bin", "php")
+        oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
+
+        uri = self.view.file_name()
+        dirNm, sfn = os.path.split(uri)
+        ext = os.path.splitext(uri)[1][1:]
+
+        oracleDirNm = dirNm
+        while oracleDirNm != "/":
+            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            if os.path.isfile(oracleFname):
+                break
+            origOracleDirNm = oracleDirNm
+            oracleDirNm = os.path.dirname(oracleDirNm)
+            if origOracleDirNm == oracleDirNm:
+                break
+
+        cmdOracle = [php_bin]
+        cmdOracle.append(oraclePath)
+        cmdOracle.append("introspect")
+        cmdOracle.append(lookTerm)
+        print(cmdOracle)
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
+        res, err = p.communicate()
+
+        print("phpfmt (introspect): "+res.decode('utf-8'))
+        print("phpfmt (introspect) err: "+err.decode('utf-8'))
+
+        outputToPanel(self, edit, "Analysis:\n"+res.decode('utf-8'));
+
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view)

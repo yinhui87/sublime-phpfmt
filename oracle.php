@@ -388,6 +388,7 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 	if (time() - filemtime($fnDb) > 86400) {
 		fwrite(STDERR, "Warning: database file older than a day" . PHP_EOL);
 	}
+
 	$db = unserialize(file_get_contents($fnDb));
 
 	$all_classes = $db['all_classes'];
@@ -396,13 +397,7 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 	$all_methods = $db['all_methods'];
 }
 
-if ("implements" == $cmd) {
-	if (!isset($all_implements[$argv[2]])) {
-		fwrite(STDERR, "Interface not found: " . $argv[2] . PHP_EOL);
-		exit(255);
-	}
-	$found_implements = &$all_implements[$argv[2]];
-	echo $argv[2] . ' implemented by' . PHP_EOL;
+function introspectInterface(&$found_implements) {
 	if (is_array($found_implements['implemented_by'])) {
 		foreach ($found_implements['implemented_by'] as $idx => $class_name) {
 			echo "\t", $class_name, " - ", $found_implements["filename"][$idx], PHP_EOL;
@@ -412,7 +407,22 @@ if ("implements" == $cmd) {
 	}
 	echo PHP_EOL;
 }
+if ("implements" == $cmd) {
+	if (!isset($all_implements[$argv[2]])) {
+		fwrite(STDERR, "Interface not found: " . $argv[2] . PHP_EOL);
+		exit(255);
+	}
+	echo $argv[2] . ' implemented by' . PHP_EOL;
+	$found_implements = &$all_implements[$argv[2]];
+	introspectInterface($found_implements);
+}
 
+function introspectExtends(&$found_extends) {
+	foreach ($found_extends['extended_by'] as $idx => $class_name) {
+		echo "\t", $class_name, " - ", $found_extends["filename"][$idx], PHP_EOL;
+	}
+	echo PHP_EOL;
+}
 if ("extends" == $cmd) {
 	if (!isset($all_extends[$argv[2]])) {
 		fwrite(STDERR, "Class not found: " . $argv[2] . PHP_EOL);
@@ -420,20 +430,10 @@ if ("extends" == $cmd) {
 	}
 	$found_extends = &$all_extends[$argv[2]];
 	echo $argv[2] . ' extended by' . PHP_EOL;
-	foreach ($found_extends['extended_by'] as $idx => $class_name) {
-		echo "\t", $class_name, " - ", $found_extends["filename"][$idx], PHP_EOL;
-	}
-	echo PHP_EOL;
+	introspectExtends($found_extends);
 }
 
-if ("class" == $cmd) {
-	if (!isset($argv[2]) || !isset($all_classes[$argv[2]])) {
-		isset($argv[2]) && fwrite(STDERR, "Class not found: " . $argv[2] . PHP_EOL);
-		fwrite(STDERR, 'Classes available:' . PHP_EOL . implode(PHP_EOL, array_keys($all_classes)) . PHP_EOL);
-		exit(255);
-	}
-	$found_classes = &$all_classes[$argv[2]][0];
-	echo $argv[2], PHP_EOL;
+function introspectClass(&$found_classes) {
 	if (!empty($found_classes['extends'])) {
 		echo "\t extends ", $found_classes['extends'], PHP_EOL;
 	}
@@ -443,6 +443,42 @@ if ("class" == $cmd) {
 	}
 
 	echo PHP_EOL;
+}
+if ("class" == $cmd) {
+	if (!isset($argv[2]) || !isset($all_classes[$argv[2]])) {
+		isset($argv[2]) && fwrite(STDERR, "Class not found: " . $argv[2] . PHP_EOL);
+		fwrite(STDERR, 'Classes available:' . PHP_EOL . implode(PHP_EOL, array_keys($all_classes)) . PHP_EOL);
+		exit(255);
+	}
+	$found_classes = &$all_classes[$argv[2]][0];
+	echo $argv[2], PHP_EOL;
+	introspectClass($found_classes);
+}
+
+if ("introspect" == $cmd) {
+	$target = $argv[2];
+	$strlenTarget = strlen($target);
+	foreach ($all_implements as $k => $v) {
+		if (substr($k, -$strlenTarget) == $target) {
+			echo $k . ' implemented by' . PHP_EOL;
+			$found_implements = &$all_implements[$k];
+			introspectInterface($found_implements);
+		}
+	}
+	foreach ($all_extends as $k => $v) {
+		if (substr($k, -$strlenTarget) == $target) {
+			$found_extends = &$all_extends[$k];
+			echo $k . ' extended by' . PHP_EOL;
+			introspectExtends($found_extends);
+		}
+	}
+	foreach ($all_classes as $k => $v) {
+		if (substr($k, -$strlenTarget) == $target) {
+			$found_classes = &$all_classes[$k][0];
+			echo "class " . $k, PHP_EOL;
+			introspectClass($found_classes);
+		}
+	}
 }
 
 if ("autocomplete" == $cmd) {
@@ -473,7 +509,7 @@ if ("autocomplete" == $cmd) {
 
 	foreach ($all_methods as $class => $methods) {
 		foreach ($methods as $method) {
-			if(false !== stripos($method[0], $searchFor) || substr($method[0], 0, $searchForLen) == $searchFor){
+			if (false !== stripos($method[0], $searchFor) || substr($method[0], 0, $searchForLen) == $searchFor) {
 				fputcsv(STDOUT, [$method[1], $method[2], $class, 'method'], ',', '"');
 			}
 		}
