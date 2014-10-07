@@ -462,7 +462,8 @@ class SgterGoCommand(sublime_plugin.TextCommand):
 class BuildOracleCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def buildDB():
-            self.msgFile.window().run_command('close_file')
+            if self.msgFile is not None:
+                self.msgFile.window().run_command('close_file')
             s = sublime.load_settings('phpfmt.sublime-settings')
             php_bin = s.get("php_bin", "php")
             oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
@@ -507,10 +508,9 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
             if origOracleDirNm == oracleDirNm:
                 break
 
-
+        self.msgFile = None
         if not os.path.isfile(oracleFname):
             print("phpfmt (oracle file): not found -- dialog")
-
             self.msgFile = self.view.window().open_file(os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "message"))
             self.msgFile.set_read_only(True)
             self.view.window().show_input_panel('location:', originalDirNm, askForDirectory, None, None)
