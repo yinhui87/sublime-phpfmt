@@ -214,6 +214,27 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
 def revert_active_window():
     sublime.active_window().active_view().run_command("revert")
 
+def lookForOracleFile(view):
+        uri = view.file_name()
+        oracleDirNm, sfn = os.path.split(uri)
+        originalDirNm = oracleDirNm
+
+        while oracleDirNm != "/":
+            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            if os.path.isfile(oracleFname):
+                return True
+            origOracleDirNm = oracleDirNm
+            oracleDirNm = os.path.dirname(oracleDirNm)
+            if origOracleDirNm == oracleDirNm:
+                return False
+        return False
+
+def outputToPanel(name, eself, eedit, message):
+        eself.output_view = eself.view.window().get_output_panel(name)
+        eself.view.window().run_command("show_panel", {"panel": "output."+name})
+        eself.output_view.set_read_only(False)
+        eself.output_view.insert(eedit, eself.output_view.size(), message)
+        eself.output_view.set_read_only(True)
 
 class phpfmt(sublime_plugin.EventListener):
     def on_post_save(self, view):
@@ -229,15 +250,12 @@ class phpfmt(sublime_plugin.EventListener):
         if format_on_save:
             dofmt(self, view)
 
-def outputToPanel(eself, eedit, message):
-        eself.output_view = eself.view.window().get_output_panel("phporacleintrospect")
-        eself.view.window().run_command("show_panel", {"panel": "output.phporacleintrospect"})
-        eself.output_view.set_read_only(False)
-        eself.output_view.insert(eedit, eself.output_view.size(), message)
-        eself.output_view.set_read_only(True)
-
 class AnalyseThisCommand(sublime_plugin.TextCommand):
     def run(self, edit):
+        if not lookForOracleFile(self.view):
+            sublime.active_window().active_view().run_command("build_oracle")
+            return False
+
         lookTerm = (self.view.substr(self.view.word(self.view.sel()[0].a)))
 
         s = sublime.load_settings('phpfmt.sublime-settings')
@@ -274,7 +292,7 @@ class AnalyseThisCommand(sublime_plugin.TextCommand):
         print("phpfmt (introspect): "+res.decode('utf-8'))
         print("phpfmt (introspect) err: "+err.decode('utf-8'))
 
-        outputToPanel(self, edit, "Analysis:\n"+res.decode('utf-8'));
+        outputToPanel("phpfmtintrospect", self, edit, "Analysis:\n"+res.decode('utf-8'));
 
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -398,6 +416,8 @@ class ToggleAutocompleteCommand(sublime_plugin.TextCommand):
             s.set("autocomplete", True)
             print("phpfmt: autocomplete enabled")
             sublime.status_message("phpfmt: autocomplete enabled")
+            if not lookForOracleFile(self.view):
+                sublime.active_window().active_view().run_command("build_oracle")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
@@ -442,6 +462,7 @@ class SgterGoCommand(sublime_plugin.TextCommand):
 class BuildOracleCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def buildDB():
+            self.msgFile.window().run_command('close_file')
             s = sublime.load_settings('phpfmt.sublime-settings')
             php_bin = s.get("php_bin", "php")
             oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
@@ -489,7 +510,10 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
 
         if not os.path.isfile(oracleFname):
             print("phpfmt (oracle file): not found -- dialog")
-            self.view.window().show_input_panel('phpfmt - input the directory within project to store autocomplete db:', originalDirNm, askForDirectory, None, None)
+
+            self.msgFile = self.view.window().open_file(os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "message"))
+            self.msgFile.set_read_only(True)
+            self.view.window().show_input_panel('location:', originalDirNm, askForDirectory, None, None)
         else:
             print("phpfmt (oracle file): "+oracleFname)
             print("phpfmt (oracle dir): "+oracleDirNm)
