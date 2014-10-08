@@ -14,6 +14,7 @@ php.fmt, php.tools and php.oracle aim to help PHP development. The following fea
  *  phpfmt: getter and setter (Go) - analyses the classes in the file and add setters/getters - SetVariable()/Variable()
 
 options which applies code analysis to work:
+
  *  phpfmt: build autocomplete database - analyse the code and generates a database used for autocomplete and automatic insertion of dependencies
  *  phpfmt: toggle autocomplete - GoSublime autocomplete style
  *  phpfmt: toggle dependency autoimport", "command": "toggle_autoimport"},
