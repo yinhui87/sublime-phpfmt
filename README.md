@@ -17,7 +17,7 @@ options which applies code analysis to work:
 
  *  phpfmt: build autocomplete database - analyse the code and generates a database used for autocomplete and automatic insertion of dependencies
  *  phpfmt: toggle autocomplete - GoSublime autocomplete style
- *  phpfmt: toggle dependency autoimport", "command": "toggle_autoimport"},
+ *  phpfmt: toggle dependency autoimport
  *  phpfmt: analyse this - analyse the current word, and seek for information such: class hierarchical data, implemented interfaces and methods.
 
 
