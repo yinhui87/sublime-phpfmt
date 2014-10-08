@@ -92,6 +92,7 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
     indent_with_space = s.get("indent_with_space", False)
     disable_auto_align = s.get("disable_auto_align", False)
     visibility_order = s.get("visibility_order", False)
+    autoimport = s.get("autoimport", True)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -177,7 +178,7 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
 
-        if oracleFname is not None:
+        if autoimport is True and oracleFname is not None:
             cmd_fmt.append("--oracleDB="+oracleFname)
 
         cmd_fmt.append("--timing")
@@ -416,6 +417,24 @@ class ToggleAutocompleteCommand(sublime_plugin.TextCommand):
             s.set("autocomplete", True)
             print("phpfmt: autocomplete enabled")
             sublime.status_message("phpfmt: autocomplete enabled")
+            if not lookForOracleFile(self.view):
+                sublime.active_window().active_view().run_command("build_oracle")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleAutoimportCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        autoimport = s.get("autoimport", False)
+
+        if autoimport:
+            s.set("autoimport", False)
+            print("phpfmt: autoimport disabled")
+            sublime.status_message("phpfmt: autoimport disabled")
+        else:
+            s.set("autoimport", True)
+            print("phpfmt: autoimport enabled")
+            sublime.status_message("phpfmt: autoimport enabled")
             if not lookForOracleFile(self.view):
                 sublime.active_window().active_view().run_command("build_oracle")
 

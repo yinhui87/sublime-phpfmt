@@ -13,5 +13,6 @@
     {"caption": "phpfmt: getter and setter (Go)", "command": "sgter_go"},
     {"caption": "phpfmt: build autocomplete database", "command": "build_oracle"},
     {"caption": "phpfmt: toggle autocomplete", "command": "toggle_autocomplete"},
+    {"caption": "phpfmt: toggle dependency autoimport", "command": "toggle_autoimport"},
     {"caption": "phpfmt: analyse this", "command": "analyse_this"}
 ]
