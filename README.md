@@ -1,7 +1,23 @@
 # [php.fmt](https://github.com/dericofilho/php.tools) support for Sublime Text 2/3
 
 
-php.fmt and php.tools aim to help PHP development. One of the features, code formatting, now is embeded too in ST3. For now it formats automatically when you save the PHP file.
+php.fmt, php.tools and php.oracle aim to help PHP development. The following features are available through command palette (`ctrl+shift+P` or `cmd+shift+P`) :
+
+ *  phpfmt: toggle format on save - handy if the code is small and you don't want to worry about formatting.
+ *  phpfmt: format now - if format on save is disabled, you can manually format the code.
+ *  phpfmt: format selection - formats only the selected code
+ *  phpfmt: toggle auto align - it aligns vertically equals and fat arrow symbols
+ *  phpfmt: toggle indent with space - for those who don't *like* indentation with tabs.
+ *  phpfmt: toggle visibility order - ensure PSR2 §4.2. `[final|static] [private|protected|public] [$variable|function]...`
+ *  phpfmt: getter and setter (snake_case) - analyses the classes in the file and add setters/getters - set_variable()/get_variable()
+ *  phpfmt: getter and setter (camelCase) - analyses the classes in the file and add setters/getters - setVariable()/getVariable()
+ *  phpfmt: getter and setter (Go) - analyses the classes in the file and add setters/getters - SetVariable()/Variable()
+
+options which applies code analysis to work:
+ *  phpfmt: build autocomplete database - analyse the code and generates a database used for autocomplete and automatic insertion of dependencies
+ *  phpfmt: toggle autocomplete - GoSublime autocomplete style
+ *  phpfmt: toggle dependency autoimport", "command": "toggle_autoimport"},
+ *  phpfmt: analyse this - analyse the current word, and seek for information such: class hierarchical data, implemented interfaces and methods.
 
 
 ### What does it do?
