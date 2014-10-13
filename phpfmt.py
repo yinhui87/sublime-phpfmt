@@ -29,8 +29,8 @@ def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
 
     cmd_fmt = [php_bin]
 
-    if debug:
-        cmd_fmt.append("-ddisplay_errors=0")
+    if not debug:
+        cmd_fmt.append("-ddisplay_errors=stderr")
 
     cmd_fmt.append(formatter_path)
 
@@ -148,8 +148,8 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
     if(p.returncode==0):
         cmd_fmt = [php_bin]
 
-        if debug:
-            cmd_fmt.append("-ddisplay_errors=0")
+        if not debug:
+            cmd_fmt.append("-ddisplay_errors=stderr")
 
         cmd_fmt.append(formatter_path)
 
