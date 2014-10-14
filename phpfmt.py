@@ -295,6 +295,60 @@ class AnalyseThisCommand(sublime_plugin.TextCommand):
 
         outputToPanel("phpfmtintrospect", self, edit, "Analysis:\n"+res.decode('utf-8'));
 
+
+lastCalltip = ""
+class CalltipCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        global lastCalltip
+        uri = self.view.file_name()
+        dirnm, sfn = os.path.split(uri)
+        ext = os.path.splitext(uri)[1][1:]
+
+        if "php" != ext:
+            return False
+
+        if not lookForOracleFile(self.view):
+            return False
+
+        lookTerm = (self.view.substr(self.view.word(self.view.sel()[0].a)))
+
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        php_bin = s.get("php_bin", "php")
+        oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
+
+        uri = self.view.file_name()
+        dirNm, sfn = os.path.split(uri)
+        ext = os.path.splitext(uri)[1][1:]
+
+        oracleDirNm = dirNm
+        while oracleDirNm != "/":
+            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            if os.path.isfile(oracleFname):
+                break
+            origOracleDirNm = oracleDirNm
+            oracleDirNm = os.path.dirname(oracleDirNm)
+            if origOracleDirNm == oracleDirNm:
+                break
+
+        cmdOracle = [php_bin]
+        cmdOracle.append(oraclePath)
+        cmdOracle.append("calltip")
+        cmdOracle.append(lookTerm)
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmdOracle, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=oracleDirNm, shell=False)
+        res, err = p.communicate()
+
+        output = res.decode('utf-8');
+
+        if len(output.strip()) > 0: # and output != lastCalltip:
+            lastCalltip = output
+            sublime.status_message("phpfmt (calltip):"+output)
+
+
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view)
@@ -635,3 +689,14 @@ class PHPFmtComplete(sublime_plugin.EventListener):
                     ))
 
         return comps
+
+def _ct_poller():
+    try:
+        view = sublime.active_window().active_view()
+        view.run_command('calltip')
+    except Exception:
+        pass
+
+    sublime.set_timeout(_ct_poller, 5000)
+
+_ct_poller()
