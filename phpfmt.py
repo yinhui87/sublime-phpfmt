@@ -690,13 +690,11 @@ class PHPFmtComplete(sublime_plugin.EventListener):
 
         return comps
 
-def _ct_poller():
-    try:
-        view = sublime.active_window().active_view()
-        view.run_command('calltip')
-    except Exception:
-        pass
-
-    sublime.set_timeout(_ct_poller, 5000)
-
-_ct_poller()
+# def _ct_poller():
+#     try:
+#         view = sublime.active_window().active_view()
+#         view.run_command('calltip')
+#     except Exception:
+#         pass
+#     sublime.set_timeout(_ct_poller, 5000)
+# _ct_poller()
