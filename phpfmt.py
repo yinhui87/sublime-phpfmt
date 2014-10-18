@@ -35,7 +35,8 @@ def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
     cmd_fmt.append(formatter_path)
 
     if psr:
-        cmd_fmt.append("--psr")
+        psr1 = True
+        psr2 = True
 
     if psr1:
         cmd_fmt.append("--psr1")
@@ -154,7 +155,8 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
         cmd_fmt.append(formatter_path)
 
         if psr:
-            cmd_fmt.append("--psr")
+            psr1 = True
+            psr2 = True
 
         if psr1:
             cmd_fmt.append("--psr1")
