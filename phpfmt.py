@@ -16,6 +16,8 @@ def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
     indent_with_space = s.get("indent_with_space", False)
     disable_auto_align = s.get("disable_auto_align", False)
     visibility_order = s.get("visibility_order", False)
+    short_array = s.get("short_array", False)
+    merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -62,6 +64,16 @@ def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
 
     cmd_fmt.append("--timing")
 
+    extras = []
+    if short_array:
+        extras.append("ShortArray")
+
+    if merge_else_if:
+        extras.append("MergeElseIf")
+
+    if len(extras) > 0:
+        cmd_fmt.append("--passes="+','.join(extras))
+
     if debug:
         print("cmd_fmt (sel): ", cmd_fmt)
 
@@ -94,6 +106,8 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
     disable_auto_align = s.get("disable_auto_align", False)
     visibility_order = s.get("visibility_order", False)
     autoimport = s.get("autoimport", True)
+    short_array = s.get("short_array", False)
+    merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -184,6 +198,17 @@ def dofmt(eself, eview, refactor_from = None, refactor_to = None, sgter = None):
             cmd_fmt.append("--oracleDB="+oracleFname)
 
         cmd_fmt.append("--timing")
+
+        extras = []
+        if short_array:
+            extras.append("ShortArray")
+
+        if merge_else_if:
+            extras.append("MergeElseIf")
+
+        if len(extras) > 0:
+            cmd_fmt.append("--passes="+','.join(extras))
+
 
         cmd_fmt.append(uri)
 
@@ -495,6 +520,40 @@ class ToggleAutoimportCommand(sublime_plugin.TextCommand):
                 sublime.active_window().active_view().run_command("build_oracle")
 
         sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleShortArrayCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        shortArray = s.get("short_array", False)
+
+        if shortArray:
+            s.set("short_array", False)
+            print("phpfmt: shortArray disabled")
+            sublime.status_message("phpfmt: shortArray disabled")
+        else:
+            s.set("short_array", True)
+            print("phpfmt: shortArray enabled")
+            sublime.status_message("phpfmt: shortArray enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+
+class ToggleMergeElseIfCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        MergeElseIf = s.get("merge_else_if", False)
+
+        if MergeElseIf:
+            s.set("merge_else_if", False)
+            print("phpfmt: MergeElseIf disabled")
+            sublime.status_message("phpfmt: MergeElseIf disabled")
+        else:
+            s.set("merge_else_if", True)
+            print("phpfmt: MergeElseIf enabled")
+            sublime.status_message("phpfmt: MergeElseIf enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
 
 class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
