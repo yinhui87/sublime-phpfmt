@@ -228,6 +228,121 @@ def dofmt(eself, eview, sgter = None):
         print("lint error: ", lint_out)
 
 
+def doreordermethod(eself, eview):
+    self = eself
+    view = eview
+    s = sublime.load_settings('phpfmt.sublime-settings')
+    debug = s.get("debug", False)
+    psr = s.get("psr1_and_2", False)
+    psr1 = s.get("psr1", False)
+    psr2 = s.get("psr2", False)
+    indent_with_space = s.get("indent_with_space", False)
+    disable_auto_align = s.get("disable_auto_align", False)
+    visibility_order = s.get("visibility_order", False)
+    autoimport = s.get("autoimport", True)
+    short_array = s.get("short_array", False)
+    merge_else_if = s.get("merge_else_if", False)
+    php_bin = s.get("php_bin", "php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
+
+    uri = view.file_name()
+    dirnm, sfn = os.path.split(uri)
+    ext = os.path.splitext(uri)[1][1:]
+
+    if "php" != ext:
+        print("phpfmt: not a PHP file")
+        sublime.status_message("phpfmt: not a PHP file")
+        return False
+
+    if not os.path.isfile(php_bin) and not php_bin == "php":
+        print("Can't find PHP binary file at "+php_bin)
+        if int(sublime.version()) >= 3000:
+            sublime.error_message("Can't find PHP binary file at "+php_bin)
+
+    if debug:
+        print("phpfmt:", uri)
+        if disable_auto_align:
+            print("auto align: disabled")
+        else:
+            print("auto align: enabled")
+
+
+
+    cmd_lint = [php_bin,"-l",uri];
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+    else:
+        p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+    lint_out, lint_err = p.communicate()
+
+    if(p.returncode==0):
+        cmd_fmt = [php_bin]
+
+        if not debug:
+            cmd_fmt.append("-ddisplay_errors=stderr")
+
+        cmd_fmt.append(formatter_path)
+
+        if psr:
+            psr1 = True
+            psr2 = True
+
+        if psr1:
+            cmd_fmt.append("--psr1")
+
+        if psr2:
+            cmd_fmt.append("--psr2")
+
+        if indent_with_space:
+            cmd_fmt.append("--indent_with_space")
+
+        if disable_auto_align:
+            cmd_fmt.append("--disable_auto_align")
+
+        if visibility_order:
+            cmd_fmt.append("--visibility_order")
+
+        extras = ['OrderMethod']
+        if short_array:
+            extras.append("ShortArray")
+
+        if merge_else_if:
+            extras.append("MergeElseIf")
+
+        if len(extras) > 0:
+            cmd_fmt.append("--passes="+','.join(extras))
+
+        cmd_fmt.append(uri)
+
+        uri_tmp = uri + "~"
+
+        if debug:
+            print("cmd_fmt: ", cmd_fmt)
+
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+        res, err = p.communicate()
+        print("err:\n", err.decode('utf-8'))
+        if int(sublime.version()) < 3000:
+            with open(uri_tmp, 'w+') as f:
+                f.write(res)
+        else:
+            with open(uri_tmp, 'bw+') as f:
+                f.write(res)
+        if debug:
+            print("Stored:", len(res), "bytes")
+        shutil.move(uri_tmp, uri)
+        sublime.set_timeout(revert_active_window, 50)
+    else:
+        print("lint error: ", lint_out)
+
+
 def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
     self = eself
     view = eview
@@ -649,6 +764,10 @@ class RefactorCommand(sublime_plugin.TextCommand):
                 s = self.view.substr(region)
 
         self.view.window().show_input_panel('Refactor From:', s, askForToTokens, None, None)
+
+class OrderMethodCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        doreordermethod(self, self.view)
 
 class SgterSnakeCommand(sublime_plugin.TextCommand):
     def run(self, edit):
