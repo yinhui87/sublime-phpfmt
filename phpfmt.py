@@ -7,7 +7,7 @@ import sublime_plugin
 import subprocess
 from os.path import dirname, realpath
 
-def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
+def dofmtsel(code):
     s = sublime.load_settings('phpfmt.sublime-settings')
     debug = s.get("debug", False)
     psr = s.get("psr1_and_2", False)
@@ -54,13 +54,6 @@ def dofmtsel(code, refactor_from = None, refactor_to = None, sgter = None):
 
     if visibility_order:
         cmd_fmt.append("--visibility_order")
-
-    if refactor_from is not None and refactor_to is not None:
-        cmd_fmt.append("--refactor="+refactor_from)
-        cmd_fmt.append("--to="+refactor_to)
-
-    if sgter is not None:
-        cmd_fmt.append("--setters_and_getters="+sgter)
 
     cmd_fmt.append("--timing")
 
@@ -189,6 +182,7 @@ def dofmt(eself, eview, sgter = None):
 
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
+            cmd_fmt.append("--constructor="+sgter)
 
         if autoimport is True and oracleFname is not None:
             cmd_fmt.append("--oracleDB="+oracleFname)
