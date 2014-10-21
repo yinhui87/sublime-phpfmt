@@ -18,6 +18,7 @@ def dofmtsel(code):
     visibility_order = s.get("visibility_order", False)
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
+    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -54,6 +55,9 @@ def dofmtsel(code):
 
     if visibility_order:
         cmd_fmt.append("--visibility_order")
+
+    if smart_linebreak_after_curly:
+        cmd_fmt.append("--smart_linebreak_after_curly")
 
     cmd_fmt.append("--timing")
 
@@ -101,6 +105,7 @@ def dofmt(eself, eview, sgter = None):
     autoimport = s.get("autoimport", True)
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
+    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -179,6 +184,9 @@ def dofmt(eself, eview, sgter = None):
 
         if visibility_order:
             cmd_fmt.append("--visibility_order")
+
+        if smart_linebreak_after_curly:
+            cmd_fmt.append("--smart_linebreak_after_curly")
 
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
@@ -735,6 +743,22 @@ class ToggleMergeElseIfCommand(sublime_plugin.TextCommand):
             s.set("merge_else_if", True)
             print("phpfmt: MergeElseIf enabled")
             sublime.status_message("phpfmt: MergeElseIf enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleSmartLinebreakAfterCurlyCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
+
+        if smart_linebreak_after_curly:
+            s.set("smart_linebreak_after_curly", False)
+            print("phpfmt: SmartLinebreakAfterCurly disabled")
+            sublime.status_message("phpfmt: SmartLinebreakAfterCurly disabled")
+        else:
+            s.set("smart_linebreak_after_curly", True)
+            print("phpfmt: SmartLinebreakAfterCurly enabled")
+            sublime.status_message("phpfmt: SmartLinebreakAfterCurly enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
