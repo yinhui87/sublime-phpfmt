@@ -1733,7 +1733,23 @@ final class ReindentIfColonBlocks extends FormatterPass {
 						list($id, $text) = $this->get_token($token);
 						$this->ptr = $index;
 						$this->append_code($text, false);
-						if (ST_CURLY_OPEN === $id) {
+						if (ST_PARENTHESES_OPEN === $id) {
+							$paren_count = 1;
+							while (list($index, $token) = each($this->tkns)) {
+								list($id, $text) = $this->get_token($token);
+								$this->ptr = $index;
+								$this->append_code($text, false);
+								if (ST_PARENTHESES_OPEN === $id) {
+									++$paren_count;
+								}
+								if (ST_PARENTHESES_CLOSE === $id) {
+									--$paren_count;
+								}
+								if (0 == $paren_count) {
+									break;
+								}
+							}
+						} elseif (ST_CURLY_OPEN === $id) {
 							break;
 						} elseif (ST_COLON === $id && !$this->is_token([T_CLOSE_TAG])) {
 							$this->set_indent(+1);
@@ -2265,7 +2281,7 @@ final class ResizeSpaces extends FormatterPass {
 					if ($this->is_token([T_STRING, T_DO, ST_PARENTHESES_CLOSE], true)) {
 						$this->append_code($this->get_space() . $text, false);
 						break;
-					} elseif ($this->is_token(ST_CURLY_CLOSE)) {
+					} elseif ($this->is_token(ST_CURLY_CLOSE) || ($this->is_token([T_VARIABLE]) && $this->is_token([T_OBJECT_OPERATOR], true))) {
 						$this->append_code($text, false);
 						break;
 					}
@@ -2411,7 +2427,10 @@ final class ResizeSpaces extends FormatterPass {
 					}
 					break;
 				case ST_REFERENCE:
-					if ($this->is_token([T_STRING], true)) {
+					if (($this->is_token([T_VARIABLE], true) && $this->is_token([T_VARIABLE])) || ($this->is_token([T_STRING], true) && $this->is_token([T_STRING]))) {
+						$this->append_code($this->get_space() . $text . $this->get_space(), false);
+						break;
+					} elseif ($this->is_token([T_STRING], true)) {
 						$this->append_code($this->get_space() . $text, false);
 						break;
 					}
