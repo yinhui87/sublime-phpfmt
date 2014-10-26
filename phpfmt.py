@@ -19,6 +19,8 @@ def dofmtsel(code):
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
+    yoda = s.get("yoda", False)
+    autopreincrement = s.get("autopreincrement", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -59,6 +61,9 @@ def dofmtsel(code):
     if smart_linebreak_after_curly:
         cmd_fmt.append("--smart_linebreak_after_curly")
 
+    if yoda:
+        cmd_fmt.append("--yoda")
+
     cmd_fmt.append("--timing")
 
     extras = []
@@ -67,6 +72,9 @@ def dofmtsel(code):
 
     if merge_else_if:
         extras.append("MergeElseIf")
+
+    if autopreincrement:
+        extras.append("AutoPreincrement")
 
     if len(extras) > 0:
         cmd_fmt.append("--passes="+','.join(extras))
@@ -106,6 +114,8 @@ def dofmt(eself, eview, sgter = None):
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
+    yoda = s.get("yoda", False)
+    autopreincrement = s.get("autopreincrement", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -188,6 +198,9 @@ def dofmt(eself, eview, sgter = None):
         if smart_linebreak_after_curly:
             cmd_fmt.append("--smart_linebreak_after_curly")
 
+        if yoda:
+            cmd_fmt.append("--yoda")
+
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
             cmd_fmt.append("--constructor="+sgter)
@@ -203,6 +216,9 @@ def dofmt(eself, eview, sgter = None):
 
         if merge_else_if:
             extras.append("MergeElseIf")
+
+        if autopreincrement:
+            extras.append("AutoPreincrement")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -762,6 +778,37 @@ class ToggleSmartLinebreakAfterCurlyCommand(sublime_plugin.TextCommand):
 
         sublime.save_settings('phpfmt.sublime-settings')
 
+class ToggleYodaCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        yoda = s.get("yoda", False)
+
+        if yoda:
+            s.set("yoda", False)
+            print("phpfmt: Yoda Mode disabled")
+            sublime.status_message("phpfmt: Yoda Mode disabled")
+        else:
+            s.set("yoda", True)
+            print("phpfmt: Yoda Mode enabled")
+            sublime.status_message("phpfmt: Yoda Mode enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleAutopreincrementCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        autopreincrement = s.get("autopreincrement", False)
+
+        if autopreincrement:
+            s.set("autopreincrement", False)
+            print("phpfmt: automatic preincrement disabled")
+            sublime.status_message("phpfmt: automatic preincrement disabled")
+        else:
+            s.set("autopreincrement", True)
+            print("phpfmt: automatic preincrement enabled")
+            sublime.status_message("phpfmt: automatic preincrement enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
 
 class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):

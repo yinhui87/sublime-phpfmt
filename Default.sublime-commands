@@ -10,6 +10,8 @@
     {"caption": "phpfmt: toggle merge else+if into elseif", "command": "toggle_merge_else_if"},
     {"caption": "phpfmt: toggle convert long array into short array", "command": "toggle_short_array"},
     {"caption": "phpfmt: toggle smart linebreak after open curly", "command": "toggle_smart_linebreak_after_curly"},
+    {"caption": "phpfmt: toggle yoda mode (experimental)", "command": "toggle_yoda"},
+    {"caption": "phpfmt: toggle automatic preincrement/predecrement (experimental)", "command": "toggle_autopreincrement"},
     {"caption": "phpfmt: refactor", "command": "refactor"},
     {"caption": "phpfmt: order method within classes", "command": "order_method"},
     {"caption": "phpfmt: getter and setter (snake_case)", "command": "sgter_snake"},
