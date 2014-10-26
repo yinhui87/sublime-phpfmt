@@ -449,6 +449,7 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
 
 def revert_active_window():
     sublime.active_window().active_view().run_command("revert")
+    sublime.active_window().active_view().run_command("phpcs_sniff_this_file")
 
 def lookForOracleFile(view):
         uri = view.file_name()
