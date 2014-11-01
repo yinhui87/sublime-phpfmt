@@ -547,6 +547,10 @@ class CalltipCommand(sublime_plugin.TextCommand):
             return False
 
         lookTerm = (self.view.substr(self.view.word(self.view.sel()[0].a)))
+        if lastCalltip == lookTerm:
+            return False
+
+        lastCalltip = lookTerm
 
         s = sublime.load_settings('phpfmt.sublime-settings')
         php_bin = s.get("php_bin", "php")
@@ -580,9 +584,7 @@ class CalltipCommand(sublime_plugin.TextCommand):
 
         output = res.decode('utf-8');
 
-        if len(output.strip()) > 0: # and output != lastCalltip:
-            lastCalltip = output
-            sublime.status_message("phpfmt (calltip):"+output)
+        self.view.set_status("phpfmt", output)
 
 
 class FmtNowCommand(sublime_plugin.TextCommand):
@@ -1011,11 +1013,12 @@ class PHPFmtComplete(sublime_plugin.EventListener):
 
         return comps
 
-# def _ct_poller():
-#     try:
-#         view = sublime.active_window().active_view()
-#         view.run_command('calltip')
-#     except Exception:
-#         pass
-#     sublime.set_timeout(_ct_poller, 5000)
-# _ct_poller()
+def _ct_poller():
+    try:
+        view = sublime.active_window().active_view()
+        view.run_command('calltip')
+    except Exception:
+        pass
+    sublime.set_timeout(_ct_poller, 5000)
+
+_ct_poller()
