@@ -12,8 +12,23 @@ php.fmt, php.tools and php.oracle aim to help PHP development. The following fea
  *  phpfmt: getter and setter (snake_case) - analyses the classes in the file and add setters/getters - set_variable()/get_variable()
  *  phpfmt: getter and setter (camelCase) - analyses the classes in the file and add setters/getters - setVariable()/getVariable()
  *  phpfmt: getter and setter (Go) - analyses the classes in the file and add setters/getters - SetVariable()/Variable()
+ *  phpfmt: toggle merge else+if into elseif - convert `...} else if (...` into `...} elseif( ...`
+ *  phpfmt: toggle convert long array into short array - convert array(...) into [...] automatically
+ *  phpfmt: toggle yoda mode - change automatically condition evaluations from `$a == CONST` to `CONST == $a`
+ *  phpfmt: toggle automatic preincrement/predecrement - convert from `$a++` to `++$a`
+ *  phpfmt: toggle smart linebreak after open curly - when adding missing curly blocks in codes, it adds an extra line break after first added curly token. Thus:
+ <pre>
+ if ($a) $b;
+ </pre>
+ to
+ <pre>
+ if ($a) {
+     $b;
+ }
+ </pre>
 
-options which applies code analysis to work:
+
+Options which applies code analysis to work:
 
  *  phpfmt: build autocomplete database - analyse the code and generates a database used for autocomplete and automatic insertion of dependencies
  *  phpfmt: toggle autocomplete - GoSublime autocomplete style
