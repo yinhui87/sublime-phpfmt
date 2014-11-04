@@ -465,7 +465,6 @@ final class AlignDoubleArrow extends FormatterPass {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
 
-		$used_counters = [];
 		$context_counter = 0;
 		$in_bracket = 0;
 		while (list($index, $token) = each($this->tkns)) {
@@ -480,7 +479,6 @@ final class AlignDoubleArrow extends FormatterPass {
 					break;
 
 				case T_DOUBLE_ARROW:
-					$used_counters[] = $context_counter;
 					$this->append_code(sprintf(self::ALIGNABLE_EQUAL, $context_counter) . $text, false);
 					break;
 
@@ -3643,12 +3641,12 @@ final class CodeFormatter {
 	}
 }
 if (!isset($testEnv)) {
-	$opts = getopt('vho:', ['yoda', 'smart_linebreak_after_curly', 'passes:', 'oracleDB::', 'timing', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr2', 'indent_with_space', 'disable_auto_align', 'visibility_order']);
+	$opts = getopt('vho:', ['yoda', 'smart_linebreak_after_curly', 'passes:', 'oracleDB::', 'timing', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
 	if (isset($opts['h']) || isset($opts['help'])) {
-		echo 'Usage: ' . $argv[0] . ' [-ho] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr2] [--indent_with_space] [--disable_auto_align] [--visibility_order] <target>', PHP_EOL;
+		echo 'Usage: ' . $argv[0] . ' [-ho] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
 		$options = [
 			'--constructor=type' => 'analyse classes for attributes and generate constructor - camel, snake, golang',
-			'--disable_auto_align' => 'disable auto align of ST_EQUAL and T_DOUBLE_ARROW',
+			'--enable_auto_align' => 'disable auto align of ST_EQUAL and T_DOUBLE_ARROW',
 			'--indent_with_space' => 'use spaces instead of tabs for indentation',
 			'--passes=pass1,passN' => 'call specific compiler pass',
 			'--psr' => 'activate PSR1 and PSR2 styles',
@@ -3754,14 +3752,13 @@ if (!isset($testEnv)) {
 	$fmt->addPass(new ReindentObjOps());
 	$fmt->addPass(new EliminateDuplicatedEmptyLines());
 
-	if (!isset($opts['disable_auto_align'])) {
+	if (isset($opts['enable_auto_align'])) {
 		$fmt->addPass(new AlignEquals());
 		$fmt->addPass(new AlignDoubleArrow());
-	} else {
 		$argv = array_values(
 			array_filter($argv,
 				function ($v) {
-					return '--disable_auto_align' !== $v;
+					return '--enable_auto_align' !== $v;
 				}
 			)
 		);

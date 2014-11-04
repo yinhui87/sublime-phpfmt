@@ -14,7 +14,7 @@ def dofmtsel(code):
     psr1 = s.get("psr1", False)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
-    disable_auto_align = s.get("disable_auto_align", False)
+    enable_auto_align = s.get("enable_auto_align", False)
     visibility_order = s.get("visibility_order", False)
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
@@ -26,10 +26,10 @@ def dofmtsel(code):
 
     if debug:
         print("phpfmt (sel):", code)
-        if disable_auto_align:
-            print("auto align (sel): disabled")
-        else:
+        if enable_auto_align:
             print("auto align (sel): enabled")
+        else:
+            print("auto align (sel): disabled")
 
 
     cmd_fmt = [php_bin]
@@ -52,8 +52,8 @@ def dofmtsel(code):
     if indent_with_space:
         cmd_fmt.append("--indent_with_space")
 
-    if disable_auto_align:
-        cmd_fmt.append("--disable_auto_align")
+    if enable_auto_align:
+        cmd_fmt.append("--enable_auto_align")
 
     if visibility_order:
         cmd_fmt.append("--visibility_order")
@@ -108,7 +108,7 @@ def dofmt(eself, eview, sgter = None):
     psr1 = s.get("psr1", False)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
-    disable_auto_align = s.get("disable_auto_align", False)
+    enable_auto_align = s.get("enable_auto_align", False)
     visibility_order = s.get("visibility_order", False)
     autoimport = s.get("autoimport", True)
     short_array = s.get("short_array", False)
@@ -152,10 +152,10 @@ def dofmt(eself, eview, sgter = None):
 
     if debug:
         print("phpfmt:", uri)
-        if disable_auto_align:
-            print("auto align: disabled")
-        else:
+        if enable_auto_align:
             print("auto align: enabled")
+        else:
+            print("auto align: disabled")
 
 
 
@@ -189,8 +189,8 @@ def dofmt(eself, eview, sgter = None):
         if indent_with_space:
             cmd_fmt.append("--indent_with_space")
 
-        if disable_auto_align:
-            cmd_fmt.append("--disable_auto_align")
+        if enable_auto_align:
+            cmd_fmt.append("--enable_auto_align")
 
         if visibility_order:
             cmd_fmt.append("--visibility_order")
@@ -261,7 +261,7 @@ def doreordermethod(eself, eview):
     psr1 = s.get("psr1", False)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
-    disable_auto_align = s.get("disable_auto_align", False)
+    enable_auto_align = s.get("enable_auto_align", False)
     visibility_order = s.get("visibility_order", False)
     autoimport = s.get("autoimport", True)
     short_array = s.get("short_array", False)
@@ -285,10 +285,10 @@ def doreordermethod(eself, eview):
 
     if debug:
         print("phpfmt:", uri)
-        if disable_auto_align:
-            print("auto align: disabled")
-        else:
+        if enable_auto_align:
             print("auto align: enabled")
+        else:
+            print("auto align: disabled")
 
 
 
@@ -322,8 +322,8 @@ def doreordermethod(eself, eview):
         if indent_with_space:
             cmd_fmt.append("--indent_with_space")
 
-        if disable_auto_align:
-            cmd_fmt.append("--disable_auto_align")
+        if enable_auto_align:
+            cmd_fmt.append("--enable_auto_align")
 
         if visibility_order:
             cmd_fmt.append("--visibility_order")
@@ -376,7 +376,7 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
     psr1 = s.get("psr1", False)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
-    disable_auto_align = s.get("disable_auto_align", False)
+    enable_auto_align = s.get("enable_auto_align", False)
     visibility_order = s.get("visibility_order", False)
     autoimport = s.get("autoimport", True)
     short_array = s.get("short_array", False)
@@ -603,16 +603,16 @@ class FmtSelectCommand(sublime_plugin.TextCommand):
 class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        disable_auto_align = s.get("disable_auto_align", False)
+        enable_auto_align = s.get("enable_auto_align", False)
 
-        if disable_auto_align:
-            s.set("disable_auto_align", False)
-            print("phpfmt: auto align enabled")
-            sublime.status_message("phpfmt: auto align enabled")
-        else:
-            s.set("disable_auto_align", True)
+        if enable_auto_align:
+            s.set("enable_auto_align", False)
             print("phpfmt: auto align disabled")
             sublime.status_message("phpfmt: auto align disabled")
+        else:
+            s.set("enable_auto_align", True)
+            print("phpfmt: auto align enabled")
+            sublime.status_message("phpfmt: auto align enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
