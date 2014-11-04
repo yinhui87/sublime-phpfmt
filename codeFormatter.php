@@ -140,10 +140,10 @@ abstract class FormatterPass {
 	protected function is_token_idx($idx, $token, $prev = false) {
 		$i = $idx;
 		if ($prev) {
-			while (--$i >= 0 && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
+			while (--$i >= 0 && isset($this->tkns[$i][1]) && T_WHITESPACE === $this->tkns[$i][0]);
 		} else {
 			$tkns_size = sizeof($this->tkns) - 1;
-			while (++$i < $tkns_size && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
+			while (++$i < $tkns_size && isset($this->tkns[$i][1]) && T_WHITESPACE === $this->tkns[$i][0]);
 		}
 
 		if (!isset($this->tkns[$i])) {
@@ -167,10 +167,10 @@ abstract class FormatterPass {
 	protected function is_token_in_subset($tkns, $idx, $token, $prev = false) {
 		$i = $idx;
 		if ($prev) {
-			while (--$i >= 0 && is_array($tkns[$i]) && T_WHITESPACE === $tkns[$i][0]);
+			while (--$i >= 0 && isset($tkns[$i][1]) && T_WHITESPACE === $tkns[$i][0]);
 		} else {
 			$tkns_size = sizeof($tkns) - 1;
-			while (++$i < $tkns_size && is_array($tkns[$i]) && T_WHITESPACE === $tkns[$i][0]);
+			while (++$i < $tkns_size && isset($tkns[$i][1]) && T_WHITESPACE === $tkns[$i][0]);
 		}
 
 		if (!isset($tkns[$i])) {
@@ -194,16 +194,16 @@ abstract class FormatterPass {
 
 	protected function prev_token() {
 		$i = $this->ptr;
-		while (--$i >= 0 && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
+		while (--$i >= 0 && isset($this->tkns[$i][1]) && T_WHITESPACE === $this->tkns[$i][0]);
 		return $this->tkns[$i];
 	}
 	protected function siblings($tkns, $ptr) {
 		$i = $ptr;
-		while (--$i >= 0 && is_array($tkns[$i]) && T_WHITESPACE === $tkns[$i][0]);
+		while (--$i >= 0 && isset($tkns[$i][1]) && T_WHITESPACE === $tkns[$i][0]);
 		$left = $i;
 		$i = $ptr;
 		$tkns_size = sizeof($tkns) - 1;
-		while (++$i < $tkns_size && is_array($tkns[$i]) && T_WHITESPACE === $tkns[$i][0]);
+		while (++$i < $tkns_size && isset($tkns[$i][1]) && T_WHITESPACE === $tkns[$i][0]);
 		$right = $i;
 		return [$left, $right];
 	}
@@ -245,6 +245,25 @@ abstract class FormatterPass {
 			$this->cache = [];
 			$this->append_code($text, false);
 			if ($tknid == $id) {
+				break;
+			}
+		}
+	}
+	protected function print_block($start, $end) {
+		$count = 1;
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
+			$this->cache = [];
+			$this->append_code($text, false);
+
+			if ($start == $id) {
+				++$count;
+			}
+			if ($end == $id) {
+				--$count;
+			}
+			if (0 == $count) {
 				break;
 			}
 		}
@@ -1172,31 +1191,31 @@ final class ExtraCommaInArray extends FormatterPass {
 			switch ($id) {
 				case T_STRING:
 					if ($this->is_token(ST_PARENTHESES_OPEN)) {
-						array_unshift($context_stack, T_STRING);
+						$context_stack[] = T_STRING;
 					}
 					$this->append_code($text, false);
 					break;
 				case T_ARRAY:
 					if ($this->is_token(ST_PARENTHESES_OPEN)) {
-						array_unshift($context_stack, T_ARRAY);
+						$context_stack[] = T_ARRAY;
 					}
 					$this->append_code($text, false);
 					break;
 				case ST_PARENTHESES_OPEN:
 					if (isset($context_stack[0]) && $this->is_token(ST_PARENTHESES_CLOSE)) {
-						array_shift($context_stack);
+						array_pop($context_stack);
 					}
 					$this->append_code($text, false);
 					break;
 				case ST_PARENTHESES_CLOSE:
 					if (isset($context_stack[0])) {
-						array_shift($context_stack);
+						array_pop($context_stack);
 					}
 					$this->append_code($text, false);
 					break;
 				default:
-					if (isset($context_stack[0]) && T_ARRAY === $context_stack[0] && $this->is_token(ST_PARENTHESES_CLOSE)) {
-						array_shift($context_stack);
+					if (T_ARRAY === end($context_stack) && $this->is_token(ST_PARENTHESES_CLOSE)) {
+						array_pop($context_stack);
 						if (ST_COMMA === $id || T_END_HEREDOC === $id || T_COMMENT === $id || T_DOC_COMMENT === $id || !$this->has_ln_after()) {
 							$this->append_code($text, false);
 						} else {
@@ -1371,9 +1390,7 @@ final class MergeParenCloseWithCurlyOpen extends FormatterPass {
 			$this->ptr = $index;
 			switch ($id) {
 				case ST_CURLY_OPEN:
-					if ($this->is_token(ST_PARENTHESES_CLOSE, true)) {
-						$this->append_code($text, true);
-					} elseif ($this->is_token([T_ELSE, T_STRING], true)) {
+					if ($this->is_token([T_ELSE, T_STRING, ST_PARENTHESES_CLOSE], true)) {
 						$this->append_code($text, true);
 					} else {
 						$this->append_code($text, false);
@@ -2245,28 +2262,19 @@ final class ReindentObjOps extends FormatterPass {
 	}
 };
 final class ResizeSpaces extends FormatterPass {
-	public function format($source) {
-		$source = $this->basicSpacing($source);
-
-		return $source;
-	}
-
 	private function filterWhitespaces($source) {
 		$tkns = token_get_all($source);
-		$new_tokens = array_values(array_filter(
-			$tkns,
-			function ($token) {
-				list($id, $text) = $this->get_token($token);
-				if (T_WHITESPACE === $id && false === strpos($text, $this->new_line)) {
-					return false;
-				}
-				return true;
+
+		foreach ($tkns as $idx => &$token) {
+			if (T_WHITESPACE === $token[0] && !$this->has_ln($token[1])) {
+				unset($tkns[$idx]);
 			}
-		));
-		return $new_tokens;
+		}
+
+		return array_values($tkns);
 	}
 
-	private function basicSpacing($source) {
+	public function format($source) {
 		$this->tkns = $this->filterWhitespaces($source);
 		$this->code = '';
 		$this->use_cache = true;
@@ -2820,22 +2828,7 @@ final class TwoCommandsInSameLine extends FormatterPass {
 
 				case ST_PARENTHESES_OPEN:
 					$this->append_code($text, false);
-					$paren_count = 1;
-					while (list($index, $token) = each($this->tkns)) {
-						list($id, $text) = $this->get_token($token);
-						$this->ptr = $index;
-						$this->append_code($text, false);
-
-						if (ST_PARENTHESES_OPEN == $id) {
-							++$paren_count;
-						}
-						if (ST_PARENTHESES_CLOSE == $id) {
-							--$paren_count;
-						}
-						if (0 == $paren_count) {
-							break;
-						}
-					}
+					$this->print_block(ST_PARENTHESES_OPEN, ST_PARENTHESES_CLOSE);
 					break;
 				default:
 					$this->append_code($text, false);
