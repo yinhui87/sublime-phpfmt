@@ -450,6 +450,7 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
 def revert_active_window():
     sublime.active_window().active_view().run_command("revert")
     sublime.active_window().active_view().run_command("phpcs_sniff_this_file")
+    sublime.active_window().active_view().run_command("phpfmt_vet")
 
 def lookForOracleFile(view):
         uri = view.file_name()
@@ -472,6 +473,10 @@ def outputToPanel(name, eself, eedit, message):
         eself.output_view.set_read_only(False)
         eself.output_view.insert(eedit, eself.output_view.size(), message)
         eself.output_view.set_read_only(True)
+
+def hidePanel(name, eself, eedit):
+        eself.output_view = eself.view.window().get_output_panel(name)
+        eself.view.window().run_command("hide_panel", {"panel": "output."+name})
 
 class phpfmt(sublime_plugin.EventListener):
     def on_post_save(self, view):
@@ -599,6 +604,21 @@ class FmtSelectCommand(sublime_plugin.TextCommand):
                 result = dofmtsel(code)
                 self.view.replace(edit, region, result)
 
+class ToggleVetCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        vet = s.get("vet", False)
+
+        if vet:
+            s.set("vet", False)
+            print("phpfmt: vet disabled")
+            sublime.status_message("phpfmt: vet disabled")
+        else:
+            s.set("vet", True)
+            print("phpfmt: vet enabled")
+            sublime.status_message("phpfmt: vet enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
 
 class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -854,6 +874,42 @@ class SgterCamelCommand(sublime_plugin.TextCommand):
 class SgterGoCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view, 'golang')
+
+class PhpfmtVetCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        run_vet = s.get('vet', False)
+        if not run_vet:
+            return False
+
+        view = self.view
+        uri = view.file_name()
+        dirNm, sfn = os.path.split(uri)
+        ext = os.path.splitext(uri)[1][1:]
+        if "php" != ext:
+            print("phpfmt (vet): not a PHP file")
+            return False
+
+
+        php_bin = s.get("php_bin", "php")
+        vetPath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "vet.php")
+        cmdVet = [php_bin]
+        cmdVet.append(vetPath)
+        cmdVet.append(view.file_name())
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmdVet, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirNm, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmdVet, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirNm, shell=False)
+        res, err = p.communicate()
+        print("phpfmt (vet): "+res.decode('utf-8'))
+        print("phpfmt (vet) err: "+err.decode('utf-8'))
+        if len(res.decode('utf-8')) > 0:
+            outputToPanel("phpfmtvet", self, edit, res.decode('utf-8'));
+        else:
+            hidePanel("phpfmtvet", self, edit)
+            print('panel should be closed')
 
 class BuildOracleCommand(sublime_plugin.TextCommand):
     def run(self, edit):
