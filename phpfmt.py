@@ -5,6 +5,7 @@ import shutil
 import sublime
 import sublime_plugin
 import subprocess
+import time
 from os.path import dirname, realpath
 
 def dofmtsel(code):
@@ -248,6 +249,8 @@ def dofmt(eself, eview, sgter = None):
             print("Stored:", len(res), "bytes")
         shutil.move(uri_tmp, uri)
         sublime.set_timeout(revert_active_window, 50)
+        time.sleep(1)
+        sublime.active_window().active_view().run_command("phpfmt_vet")
     else:
         print("lint error: ", lint_out)
 
@@ -450,7 +453,6 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
 def revert_active_window():
     sublime.active_window().active_view().run_command("revert")
     sublime.active_window().active_view().run_command("phpcs_sniff_this_file")
-    sublime.active_window().active_view().run_command("phpfmt_vet")
 
 def lookForOracleFile(view):
         uri = view.file_name()
@@ -907,9 +909,18 @@ class PhpfmtVetCommand(sublime_plugin.TextCommand):
         print("phpfmt (vet) err: "+err.decode('utf-8'))
         if len(res.decode('utf-8')) > 0:
             outputToPanel("phpfmtvet", self, edit, res.decode('utf-8'));
+            # errors = res.decode('utf-8').split('\n')
+            # x = csv.reader(errors)
+            # regions = []
+            # for row in x:
+            #     line = self.view.full_line(self.view.text_point(row[1],0))
+            #     regions.append(line)
+            # view.erase_regions("vet")
+            # view.add_regions("vet", [line], "comment", "dot")
+            # print(view.get_regions("vet"))
+            # print("draw line")
         else:
             hidePanel("phpfmtvet", self, edit)
-            print('panel should be closed')
 
 class BuildOracleCommand(sublime_plugin.TextCommand):
     def run(self, edit):
