@@ -6,6 +6,7 @@ import sublime
 import sublime_plugin
 import subprocess
 import time
+import csv
 from os.path import dirname, realpath
 
 def dofmtsel(code):
@@ -22,6 +23,7 @@ def dofmtsel(code):
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
     yoda = s.get("yoda", False)
     autopreincrement = s.get("autopreincrement", False)
+    remove_leading_slash = s.get("remove_leading_slash", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -77,6 +79,9 @@ def dofmtsel(code):
     if autopreincrement:
         extras.append("AutoPreincrement")
 
+    if remove_leading_slash:
+        extras.append("RemoveUseLeadingSlash")
+
     if len(extras) > 0:
         cmd_fmt.append("--passes="+','.join(extras))
 
@@ -117,6 +122,7 @@ def dofmt(eself, eview, sgter = None):
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
     yoda = s.get("yoda", False)
     autopreincrement = s.get("autopreincrement", False)
+    remove_leading_slash = s.get("remove_leading_slash", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -220,6 +226,9 @@ def dofmt(eself, eview, sgter = None):
 
         if autopreincrement:
             extras.append("AutoPreincrement")
+
+        if remove_leading_slash:
+            extras.append("RemoveUseLeadingSlash")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -622,6 +631,22 @@ class ToggleVetCommand(sublime_plugin.TextCommand):
 
         sublime.save_settings('phpfmt.sublime-settings')
 
+class ToggleRemoveLeadingSlash(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        remove_leading_slash = s.get("remove_leading_slash", False)
+
+        if remove_leading_slash:
+            s.set("remove_leading_slash", False)
+            print("phpfmt: remove leading slash disabled")
+            sublime.status_message("phpfmt: remove leading slash disabled")
+        else:
+            s.set("remove_leading_slash", True)
+            print("phpfmt: remove leading slash enabled")
+            sublime.status_message("phpfmt: remove leading slash enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
 class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
@@ -885,6 +910,7 @@ class PhpfmtVetCommand(sublime_plugin.TextCommand):
             return False
 
         view = self.view
+
         uri = view.file_name()
         dirNm, sfn = os.path.split(uri)
         ext = os.path.splitext(uri)[1][1:]

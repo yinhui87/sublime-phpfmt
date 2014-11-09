@@ -13,6 +13,7 @@
     {"caption": "phpfmt: toggle yoda mode", "command": "toggle_yoda"},
     {"caption": "phpfmt: toggle automatic preincrement/predecrement", "command": "toggle_autopreincrement"},
     {"caption": "phpfmt: toggle php.vet", "command": "toggle_vet"},
+    {"caption": "phpfmt: toggle leading slash in use clauses", "command": "toggle_remove_leading_slash"},
     {"caption": "phpfmt: refactor", "command": "refactor"},
     {"caption": "phpfmt: order method within classes", "command": "order_method"},
     {"caption": "phpfmt: getter and setter (snake_case)", "command": "sgter_snake"},
