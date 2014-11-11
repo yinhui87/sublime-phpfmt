@@ -35,6 +35,9 @@ class ClassParser extends Parser {
 			$this->ptr = $index;
 			switch ($id) {
 				case T_CLASS:
+					if ($this->is_token([T_DOUBLE_COLON], true)) {
+						continue;
+					}
 					$class_name = null;
 					$extends = null;
 					$implements = null;
@@ -162,6 +165,10 @@ class ClassMethodParser extends Parser {
 			$this->ptr = $index;
 			switch ($id) {
 				case T_CLASS:
+					if ($this->is_token([T_DOUBLE_COLON], true)) {
+						continue;
+					}
+
 					list($id, $text) = $this->walk_next_token();
 					$className = $text;
 					do {
