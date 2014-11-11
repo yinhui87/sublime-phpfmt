@@ -2341,13 +2341,6 @@ final class ResizeSpaces extends FormatterPass {
 				case '*':
 					list($prev_id, $prev_text) = $this->inspect_token(-1);
 					list($next_id, $next_text) = $this->inspect_token(+1);
-					// T_POW should be handled by proper PHP version
-					// if ('*' == $next_text) {
-					// 	$text .= '*';
-					// 	list($index, $token) = each($this->tkns);
-					// 	$this->ptr = $index;
-					// 	list($next_id, $next_text) = $this->inspect_token(+1);
-					// }
 					if (
 						T_WHITESPACE === $prev_id &&
 						T_WHITESPACE !== $next_id
@@ -2448,8 +2441,8 @@ final class ResizeSpaces extends FormatterPass {
 						break;
 					}
 				case ST_CURLY_OPEN:
-					if ($this->is_token([T_STRING, T_DO, ST_PARENTHESES_CLOSE], true)) {
-						$this->append_code($this->get_space() . $text, false);
+					if ($this->is_token([T_STRING, T_DO, T_FINALLY, ST_PARENTHESES_CLOSE], true)) {
+						$this->append_code($this->get_space() . $text, !$this->has_ln_prev_token());
 						break;
 					} elseif ($this->is_token(ST_CURLY_CLOSE) || ($this->is_token([T_VARIABLE]) && $this->is_token([T_OBJECT_OPERATOR], true))) {
 						$this->append_code($text, false);
@@ -2461,14 +2454,18 @@ final class ResizeSpaces extends FormatterPass {
 						break;
 					}
 				case ST_PARENTHESES_OPEN:
+					if ($this->is_token([T_WHILE, T_CATCH], true)) {
+						$this->append_code($this->get_space() . $text, !$this->has_ln_prev_token());
+					} else {
+						$this->append_code($text, false);
+					}
+					break;
 				case ST_PARENTHESES_CLOSE:
 					$this->append_code($text, false);
 					break;
 				case T_USE:
 					if ($this->is_token(ST_PARENTHESES_CLOSE, true)) {
 						$this->append_code($this->get_space() . $text . $this->get_space(), false);
-						//} elseif ($this->is_token(ST_SEMI_COLON)) {
-						//	$this->append_code($text, false);
 					} else {
 						$this->append_code($text . $this->get_space(), false);
 					}
@@ -2486,10 +2483,6 @@ final class ResizeSpaces extends FormatterPass {
 					$this->append_code($text . $this->get_space(!$this->is_token(ST_SEMI_COLON)), false);
 					break;
 				case T_WHILE:
-					// if ($this->is_token(ST_SEMI_COLON)) {
-					// 	$this->append_code($text . $this->get_space(), false);
-					// 	break;
-					// } else
 					if ($this->is_token(ST_CURLY_CLOSE, true) && !$this->has_ln_before()) {
 						$this->append_code($this->get_space() . $text . $this->get_space(), false);
 						break;
@@ -2560,9 +2553,11 @@ final class ResizeSpaces extends FormatterPass {
 				case ST_IS_SMALLER:
 				case T_AS:
 				case ST_EQUAL:
+					$this->append_code($this->get_space() . $text . $this->get_space(), false);
+					break;
 				case T_CATCH:
 				case T_FINALLY:
-					$this->append_code($this->get_space() . $text . $this->get_space(), false);
+					$this->append_code($this->get_space() . $text . $this->get_space(), !$this->has_ln_prev_token());
 					break;
 				case T_ELSEIF:
 					if (!$this->is_token(ST_CURLY_CLOSE, true)) {
@@ -2588,15 +2583,6 @@ final class ResizeSpaces extends FormatterPass {
 				case T_GOTO:
 					$this->append_code($text . $this->get_space(), false);
 					break;
-					// case ST_CONCAT:
-					// 	if (
-					// 		!$this->is_token([ST_PARENTHESES_CLOSE, ST_BRACKET_CLOSE, T_VARIABLE, T_STRING, T_CONSTANT_ENCAPSED_STRING, T_WHITESPACE], true)
-					// 	) {
-					// 		$this->append_code($this->get_space() . $text, false);
-					// 	} else {
-					// 		$this->append_code($text, false);
-					// 	}
-					// 	break;
 				case ST_REFERENCE:
 					if (($this->is_token([T_VARIABLE], true) && $this->is_token([T_VARIABLE])) || ($this->is_token([T_VARIABLE], true) && $this->is_token([T_STRING])) || ($this->is_token([T_STRING], true) && $this->is_token([T_STRING]))) {
 						$this->append_code($this->get_space() . $text . $this->get_space(), false);
@@ -3753,10 +3739,6 @@ class PsrDecorator {
 
 final class CodeFormatter {
 	private $passes = [];
-	private $debug = false;
-	public function __construct($debug = false) {
-		$this->debug = (bool) $debug;
-	}
 	public function addPass(FormatterPass $pass) {
 		array_unshift($this->passes, $pass);
 	}
@@ -3775,7 +3757,7 @@ final class CodeFormatter {
 	}
 }
 if (!isset($testEnv)) {
-	$opts = getopt('vho:', ['yoda', 'smart_linebreak_after_curly', 'passes:', 'oracleDB::', 'timing', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
+	$opts = getopt('ho:', ['yoda', 'smart_linebreak_after_curly', 'passes:', 'oracleDB::', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
 	if (isset($opts['h']) || isset($opts['help'])) {
 		echo 'Usage: ' . $argv[0] . ' [-ho] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
 		$options = [
@@ -3792,7 +3774,6 @@ if (!isset($testEnv)) {
 			'--yoda' => 'yoda-style comparisons',
 			'-h, --help' => 'this help message',
 			'-o=file' => 'output the formatted code to "file"',
-			'-v, --timing' => 'timing',
 		];
 		$maxLen = max(array_map(function ($v) {
 			return strlen($v);
@@ -3804,19 +3785,7 @@ if (!isset($testEnv)) {
 		die();
 	}
 
-	$debug = false;
-	if (isset($opts['v']) || isset($opts['timing'])) {
-		$debug = true;
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return !('-v' === $v || '--timing' === $v);
-				}
-			)
-		);
-	}
-
-	$fmt = new CodeFormatter($debug);
+	$fmt = new CodeFormatter();
 	$fmt->addPass(new TwoCommandsInSameLine());
 	if (isset($opts['setters_and_getters'])) {
 		$argv = array_values(
