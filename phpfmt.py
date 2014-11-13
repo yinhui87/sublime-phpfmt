@@ -29,11 +29,6 @@ def dofmtsel(code):
 
     if debug:
         print("phpfmt (sel):", code)
-        if enable_auto_align:
-            print("auto align (sel): enabled")
-        else:
-            print("auto align (sel): disabled")
-
 
     cmd_fmt = [php_bin]
 
@@ -100,7 +95,8 @@ def dofmtsel(code):
     bufferedCode = bytes(code, 'utf-8');
     res, err = p.communicate(input=bufferedCode)
 
-    print("err:\n", err.decode('utf-8'))
+    if debug:
+        print("err:\n", err.decode('utf-8'))
     return res.decode('utf-8').replace('<?php/*REMOVEME*/'+"\n", '')
 
 
@@ -130,8 +126,8 @@ def dofmt(eself, eview, sgter = None):
     ext = os.path.splitext(uri)[1][1:]
 
     if "php" != ext:
-        print("phpfmt: not a PHP file")
-        sublime.status_message("phpfmt: not a PHP file")
+        if debug:
+            print("phpfmt: not a PHP file")
         return False
 
     if not os.path.isfile(php_bin) and not php_bin == "php":
@@ -151,19 +147,15 @@ def dofmt(eself, eview, sgter = None):
             break
 
     if not os.path.isfile(oracleFname):
-        print("phpfmt (oracle file): not found")
+        if debug:
+            print("phpfmt (oracle file): not found")
         oracleFname = None
     else:
-        print("phpfmt (oracle file): "+oracleFname)
+        if debug:
+            print("phpfmt (oracle file): "+oracleFname)
 
     if debug:
         print("phpfmt:", uri)
-        if enable_auto_align:
-            print("auto align: enabled")
-        else:
-            print("auto align: disabled")
-
-
 
     cmd_lint = [php_bin,"-l",uri];
     if os.name == 'nt':
@@ -245,7 +237,8 @@ def dofmt(eself, eview, sgter = None):
         else:
             p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         res, err = p.communicate()
-        print("err:\n", err.decode('utf-8'))
+        if debug:
+            print("err:\n", err.decode('utf-8'))
         if int(sublime.version()) < 3000:
             with open(uri_tmp, 'w+') as f:
                 f.write(res)
@@ -259,7 +252,8 @@ def dofmt(eself, eview, sgter = None):
         time.sleep(1)
         sublime.active_window().active_view().run_command("phpfmt_vet")
     else:
-        print("lint error: ", lint_out)
+        if debug:
+            print("lint error: ", lint_out)
 
 
 def doreordermethod(eself, eview):
