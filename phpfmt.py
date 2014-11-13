@@ -20,10 +20,11 @@ def dofmtsel(code):
     visibility_order = s.get("visibility_order", False)
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
-    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
+    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
     yoda = s.get("yoda", False)
     autopreincrement = s.get("autopreincrement", False)
     remove_leading_slash = s.get("remove_leading_slash", False)
+    linebreak_after_namespace = s.get("linebreak_after_namespace", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -76,6 +77,9 @@ def dofmtsel(code):
     if remove_leading_slash:
         extras.append("RemoveUseLeadingSlash")
 
+    if linebreak_after_namespace:
+        extras.append("PSR2LnAfterNamespace")
+
     if len(extras) > 0:
         cmd_fmt.append("--passes="+','.join(extras))
 
@@ -114,10 +118,11 @@ def dofmt(eself, eview, sgter = None):
     autoimport = s.get("autoimport", True)
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
-    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
+    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
     yoda = s.get("yoda", False)
     autopreincrement = s.get("autopreincrement", False)
     remove_leading_slash = s.get("remove_leading_slash", False)
+    linebreak_after_namespace = s.get("linebreak_after_namespace", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -219,6 +224,9 @@ def dofmt(eself, eview, sgter = None):
 
         if remove_leading_slash:
             extras.append("RemoveUseLeadingSlash")
+
+        if linebreak_after_namespace:
+            extras.append("PSR2LnAfterNamespace")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -807,7 +815,7 @@ class ToggleMergeElseIfCommand(sublime_plugin.TextCommand):
 class ToggleSmartLinebreakAfterCurlyCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", False)
+        smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
 
         if smart_linebreak_after_curly:
             s.set("smart_linebreak_after_curly", False)
@@ -849,6 +857,22 @@ class ToggleAutopreincrementCommand(sublime_plugin.TextCommand):
             s.set("autopreincrement", True)
             print("phpfmt: automatic preincrement enabled")
             sublime.status_message("phpfmt: automatic preincrement enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleLinebreakAfterNamespaceCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        linebreak_after_namespace = s.get("linebreak_after_namespace", False)
+
+        if linebreak_after_namespace:
+            s.set("linebreak_after_namespace", False)
+            print("phpfmt: automatic linebreak after namespace disabled")
+            sublime.status_message("phpfmt: automatic linebreak after namespace disabled")
+        else:
+            s.set("linebreak_after_namespace", True)
+            print("phpfmt: automatic linebreak after namespace enabled")
+            sublime.status_message("phpfmt: automatic linebreak after namespace enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
