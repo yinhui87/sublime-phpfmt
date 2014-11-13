@@ -67,7 +67,6 @@ def dofmtsel(code):
     if yoda:
         cmd_fmt.append("--yoda")
 
-    cmd_fmt.append("--timing")
 
     extras = []
     if short_array:
@@ -215,7 +214,6 @@ def dofmt(eself, eview, sgter = None):
         if autoimport is True and oracleFname is not None:
             cmd_fmt.append("--oracleDB="+oracleFname)
 
-        cmd_fmt.append("--timing")
 
         extras = []
         if short_array:
