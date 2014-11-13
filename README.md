@@ -76,7 +76,7 @@ $a        = 10;
 $otherVar = 20;
 $third    = 30;
 </code></pre>
-<i>This can be disabled with the option "disable_auto_align"</i>
+<i>This can be enabled with the option "enable_auto_align"</i>
 </td>
 </tr>
 <tr>
@@ -216,14 +216,10 @@ Plugin runs better with PHP 5.5 or newer installed in the machine running the pl
   Example: `"php_bin":"c:/PHP/php.exe"`
 
 ### Settings
+Prefer using the toggle options at command palette. However you might find yourself in need to setup where PHP is running, use this option below for the configuration file.
 ```
-"psr1":false,
-"psr2":false,
 "php_bin":"/usr/local/bin/php",
-"indent_with_space":false,
-// This allows you to invoke the formatter when you feel like it
-"format_on_save":true
 ```
 
 ### Troubleshooting
-- If php errors display make sure you can run PHP from the command line
+- If php errors appears make sure you can run PHP from the command line
