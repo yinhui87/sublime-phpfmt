@@ -15,6 +15,7 @@
     {"caption": "phpfmt: toggle PSR2", "command": "toggle_psr_two"},
     {"caption": "phpfmt: toggle smart linebreak after open curly", "command": "toggle_smart_linebreak_after_curly"},
     {"caption": "phpfmt: toggle linebreak after namespace", "command": "toggle_linebreak_after_namespace"},
+    {"caption": "phpfmt: toggle linebreak between methods", "command": "toggle_linebreak_between_methods"},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle_visibility_order"},
     {"caption": "phpfmt: toggle yoda mode", "command": "toggle_yoda"},
     {"caption": "phpfmt: analyse this", "command": "analyse_this"},

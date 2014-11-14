@@ -2947,6 +2947,33 @@ final class SmartLnAfterCurlyOpen extends FormatterPass {
 	}
 }
 ;
+class SpaceBetweenMethods extends FormatterPass {
+	public function format($source) {
+		$this->tkns = token_get_all($source);
+		$this->code = '';
+		$last_touched_token = null;
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case T_FUNCTION:
+					$this->append_code($text, false);
+					$this->print_until_the_end_of(ST_CURLY_OPEN);
+					$this->print_block(ST_CURLY_OPEN, ST_CURLY_CLOSE);
+					if (!$this->is_token(ST_CURLY_CLOSE)) {
+						$this->append_code($this->get_crlf(), false);
+					}
+					break;
+				default:
+					$this->append_code($text, false);
+					break;
+			}
+		}
+
+		return $this->code;
+	}
+}
+;
 final class SurrogateToken {
 }
 ;
@@ -3854,13 +3881,14 @@ final class CodeFormatter {
 	}
 }
 if (!isset($testEnv)) {
-	$opts = getopt('ho:', ['yoda', 'smart_linebreak_after_curly', 'passes:', 'oracleDB::', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
+	$opts = getopt('ho:', ['yoda', 'smart_linebreak_after_curly', 'prepasses:', 'passes:', 'oracleDB::', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
 	if (isset($opts['h']) || isset($opts['help'])) {
 		echo 'Usage: ' . $argv[0] . ' [-ho] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
 		$options = [
 			'--constructor=type' => 'analyse classes for attributes and generate constructor - camel, snake, golang',
 			'--enable_auto_align' => 'disable auto align of ST_EQUAL and T_DOUBLE_ARROW',
 			'--indent_with_space' => 'use spaces instead of tabs for indentation',
+			'--prepasses=pass1,passN' => 'call specific compiler pass, before the rest of stack',
 			'--passes=pass1,passN' => 'call specific compiler pass',
 			'--psr' => 'activate PSR1 and PSR2 styles',
 			'--psr1' => 'activate PSR1 style',
@@ -3883,6 +3911,23 @@ if (!isset($testEnv)) {
 	}
 
 	$fmt = new CodeFormatter();
+	if (isset($opts['prepasses'])) {
+		$optPasses = array_map(function ($v) {
+			return trim($v);
+		}, explode(',', $opts['prepasses']));
+		foreach ($optPasses as $optPass) {
+			if (class_exists($optPass)) {
+				$fmt->addPass(new $optPass());
+			}
+		}
+		$argv = array_values(
+			array_filter($argv,
+				function ($v) {
+					return substr($v, 0, strlen('--prepasses')) !== '--prepasses';
+				}
+			)
+		);
+	}
 	$fmt->addPass(new TwoCommandsInSameLine());
 	$fmt->addPass(new RemoveIncludeParentheses());
 	$fmt->addPass(new NormalizeIsNotEquals());

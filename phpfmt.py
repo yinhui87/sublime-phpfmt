@@ -25,6 +25,7 @@ def dofmtsel(code):
     autopreincrement = s.get("autopreincrement", False)
     remove_leading_slash = s.get("remove_leading_slash", False)
     linebreak_after_namespace = s.get("linebreak_after_namespace", False)
+    linebreak_between_methods = s.get("linebreak_between_methods", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -83,6 +84,13 @@ def dofmtsel(code):
     if len(extras) > 0:
         cmd_fmt.append("--passes="+','.join(extras))
 
+    preextras = []
+    if linebreak_between_methods:
+        preextras.append("SpaceBetweenMethods")
+
+    if len(preextras) > 0:
+        cmd_fmt.append("--prepasses="+','.join(preextras))
+
     if debug:
         print("cmd_fmt (sel): ", cmd_fmt)
 
@@ -123,6 +131,7 @@ def dofmt(eself, eview, sgter = None):
     autopreincrement = s.get("autopreincrement", False)
     remove_leading_slash = s.get("remove_leading_slash", False)
     linebreak_after_namespace = s.get("linebreak_after_namespace", False)
+    linebreak_between_methods = s.get("linebreak_between_methods", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -230,6 +239,13 @@ def dofmt(eself, eview, sgter = None):
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
+
+        preextras = []
+        if linebreak_between_methods:
+            preextras.append("SpaceBetweenMethods")
+
+        if len(preextras) > 0:
+            cmd_fmt.append("--prepasses="+','.join(preextras))
 
         cmd_fmt.append(uri)
 
@@ -873,6 +889,22 @@ class ToggleLinebreakAfterNamespaceCommand(sublime_plugin.TextCommand):
             s.set("linebreak_after_namespace", True)
             print("phpfmt: automatic linebreak after namespace enabled")
             sublime.status_message("phpfmt: automatic linebreak after namespace enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleLinebreakBetweenMethodsCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        linebreak_between_methods = s.get("linebreak_between_methods", False)
+
+        if linebreak_between_methods:
+            s.set("linebreak_between_methods", False)
+            print("phpfmt: automatic linebreak between methods disabled")
+            sublime.status_message("phpfmt: automatic linebreak between methods disabled")
+        else:
+            s.set("linebreak_between_methods", True)
+            print("phpfmt: automatic linebreak between methods enabled")
+            sublime.status_message("phpfmt: automatic linebreak between methods enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
