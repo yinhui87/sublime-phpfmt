@@ -26,6 +26,7 @@ def dofmtsel(code):
     remove_leading_slash = s.get("remove_leading_slash", False)
     linebreak_after_namespace = s.get("linebreak_after_namespace", False)
     linebreak_between_methods = s.get("linebreak_between_methods", False)
+    remove_return_empty = s.get("remove_return_empty", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -88,6 +89,9 @@ def dofmtsel(code):
     if linebreak_between_methods:
         preextras.append("SpaceBetweenMethods")
 
+    if remove_return_empty:
+        preextras.append("ReturnNull")
+
     if len(preextras) > 0:
         cmd_fmt.append("--prepasses="+','.join(preextras))
 
@@ -132,6 +136,7 @@ def dofmt(eself, eview, sgter = None):
     remove_leading_slash = s.get("remove_leading_slash", False)
     linebreak_after_namespace = s.get("linebreak_after_namespace", False)
     linebreak_between_methods = s.get("linebreak_between_methods", False)
+    remove_return_empty = s.get("remove_return_empty", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -243,6 +248,9 @@ def dofmt(eself, eview, sgter = None):
         preextras = []
         if linebreak_between_methods:
             preextras.append("SpaceBetweenMethods")
+
+        if remove_return_empty:
+            preextras.append("ReturnNull")
 
         if len(preextras) > 0:
             cmd_fmt.append("--prepasses="+','.join(preextras))
@@ -905,6 +913,22 @@ class ToggleLinebreakBetweenMethodsCommand(sublime_plugin.TextCommand):
             s.set("linebreak_between_methods", True)
             print("phpfmt: automatic linebreak between methods enabled")
             sublime.status_message("phpfmt: automatic linebreak between methods enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleReturnEmptyCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        remove_return_empty = s.get("remove_return_empty", False)
+
+        if remove_return_empty:
+            s.set("remove_return_empty", False)
+            print("phpfmt: remove empty returns disabled")
+            sublime.status_message("phpfmt: remove empty returns disabled")
+        else:
+            s.set("remove_return_empty", True)
+            print("phpfmt: remove empty returns enabled")
+            sublime.status_message("phpfmt: remove empty returns enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
