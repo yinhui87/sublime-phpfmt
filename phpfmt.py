@@ -137,7 +137,7 @@ def dofmt(eself, eview, sgter = None):
     linebreak_after_namespace = s.get("linebreak_after_namespace", False)
     linebreak_between_methods = s.get("linebreak_between_methods", False)
     remove_return_empty = s.get("remove_return_empty", False)
-    ignore_list = s.get("ignore_list", "").split(" ")
+    ignore_list = s.get("ignore_list", "")
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
@@ -151,12 +151,14 @@ def dofmt(eself, eview, sgter = None):
             print("phpfmt: not a PHP file")
         return False
 
-    for v in ignore_list:
-        pos = uri.find(v)
-        if -1 != pos:
-            if debug:
-                print("phpfmt: skipping file")
-            return False;
+    if "" != ignore_list:
+        ignore_list = ignore_list.split(" ")
+        for v in ignore_list:
+            pos = uri.find(v)
+            if -1 != pos:
+                if debug:
+                    print("phpfmt: skipping file")
+                return False;
 
     if not os.path.isfile(php_bin) and not php_bin == "php":
         print("Can't find PHP binary file at "+php_bin)
