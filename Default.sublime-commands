@@ -1,6 +1,7 @@
 [
     {"caption": "phpfmt: format now", "command": "fmt_now"},
     {"caption": "phpfmt: format selection", "command": "fmt_select"},
+    {"caption": "phpfmt: toggle add missing parentheses for instantion calls", "command": "toggle_add_missing_parentheses"},
     {"caption": "phpfmt: toggle auto align", "command": "toggle_auto_align"},
     {"caption": "phpfmt: toggle autocomplete", "command": "toggle_autocomplete"},
     {"caption": "phpfmt: toggle automatic preincrement/predecrement", "command": "toggle_autopreincrement"},

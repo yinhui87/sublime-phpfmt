@@ -27,6 +27,7 @@ def dofmtsel(code):
     linebreak_after_namespace = s.get("linebreak_after_namespace", False)
     linebreak_between_methods = s.get("linebreak_between_methods", False)
     remove_return_empty = s.get("remove_return_empty", False)
+    add_missing_parentheses = s.get("add_missing_parentheses", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -92,6 +93,9 @@ def dofmtsel(code):
     if remove_return_empty:
         preextras.append("ReturnNull")
 
+    if add_missing_parentheses:
+        preextras.append("AddMissingParentheses")
+
     if len(preextras) > 0:
         cmd_fmt.append("--prepasses="+','.join(preextras))
 
@@ -137,6 +141,7 @@ def dofmt(eself, eview, sgter = None):
     linebreak_after_namespace = s.get("linebreak_after_namespace", False)
     linebreak_between_methods = s.get("linebreak_between_methods", False)
     remove_return_empty = s.get("remove_return_empty", False)
+    add_missing_parentheses = s.get("add_missing_parentheses", False)
     ignore_list = s.get("ignore_list", "")
 
     php_bin = s.get("php_bin", "php")
@@ -262,6 +267,9 @@ def dofmt(eself, eview, sgter = None):
 
         if remove_return_empty:
             preextras.append("ReturnNull")
+
+        if add_missing_parentheses:
+            preextras.append("AddMissingParentheses")
 
         if len(preextras) > 0:
             cmd_fmt.append("--prepasses="+','.join(preextras))
@@ -775,6 +783,22 @@ class ToggleFormatOnSaveCommand(sublime_plugin.TextCommand):
             s.set("format_on_save", True)
             print("phpfmt: format on save enabled")
             sublime.status_message("phpfmt: format on save enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleAddMissingParenthesesCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        add_missing_parentheses = s.get("add_missing_parentheses", False)
+
+        if add_missing_parentheses:
+            s.set("add_missing_parentheses", False)
+            print("phpfmt: add missing parentheses disabled")
+            sublime.status_message("phpfmt: add missing parentheses disabled")
+        else:
+            s.set("add_missing_parentheses", True)
+            print("phpfmt: add missing parentheses enabled")
+            sublime.status_message("phpfmt: add missing parentheses enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
