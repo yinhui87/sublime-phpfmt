@@ -27,6 +27,20 @@
                                 "command": "open_file"
                             },
                             {
+                                "caption": "Key Bindings – Default",
+                                "args": {
+                                    "file": "${packages}/phpfmt/Default.sublime-keymap"
+                                },
+                                "command": "open_file"
+                            },
+                            {
+                                "caption": "Key Bindings – User",
+                                "args": {
+                                    "file": "${packages}/User/Default.sublime-keymap"
+                                },
+                                "command": "open_file"
+                            },
+                            {
                                 "caption": "-"
                             }
                         ]
