@@ -1,4 +1,4 @@
 [
-	{ "keys": ["f10"], "command": "analyse_this" },
-	{ "keys": ["f11"], "command": "fmt_now" }
+	{ "keys": ["ctrl+f10"], "command": "analyse_this" },
+	{ "keys": ["ctrl+f11"], "command": "fmt_now" }
 ]
