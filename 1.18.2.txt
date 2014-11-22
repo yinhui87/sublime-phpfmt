@@ -1,0 +1,17 @@
+php.fmt
+=======
+
+Thank you for upgrading.
+
+Update key binding to `phpfmt: format now`: Ctrl+F11
+
+Press Ctrl+F11 and your code will be formatted promptly.
+
+(F11 is the default key to toggle fullscreen)
+
+---
+
+- If you find anything wrong with this update, please report an issue at https://github.com/dericofilho/sublime-phpfmt/issues
+
+- If you like what this plugin does for you, please consider starring at https://github.com/dericofilho/sublime-phpfmt or https://github.com/dericofilho/php.tools
+
