@@ -3,11 +3,11 @@ php.fmt
 
 Thank you for upgrading.
 
-Update key binding to `phpfmt: format now`: Ctrl+F11
+Update key binding to `phpfmt: format now`: Ctrl+F11 (Windows) / F11 (OSX and Linux)
 
-Press Ctrl+F11 and your code will be formatted promptly.
+Press Ctrl+F11 (Windows) / F11 (OSX and Linux) and your code will be formatted promptly.
 
-(F11 is the default key to toggle fullscreen)
+Thanks @piotros. https://github.com/piotros
 
 ---
 
