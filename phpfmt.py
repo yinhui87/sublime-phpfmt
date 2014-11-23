@@ -28,6 +28,7 @@ def dofmtsel(code):
     linebreak_between_methods = s.get("linebreak_between_methods", False)
     remove_return_empty = s.get("remove_return_empty", False)
     add_missing_parentheses = s.get("add_missing_parentheses", False)
+    wrong_constructor_name = s.get("wrong_constructor_name", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -82,6 +83,9 @@ def dofmtsel(code):
 
     if linebreak_after_namespace:
         extras.append("PSR2LnAfterNamespace")
+
+    if wrong_constructor_name:
+        extras.append("WrongConstructorName")
 
     if len(extras) > 0:
         cmd_fmt.append("--passes="+','.join(extras))
@@ -142,6 +146,7 @@ def dofmt(eself, eview, sgter = None):
     linebreak_between_methods = s.get("linebreak_between_methods", False)
     remove_return_empty = s.get("remove_return_empty", False)
     add_missing_parentheses = s.get("add_missing_parentheses", False)
+    wrong_constructor_name = s.get("wrong_constructor_name", False)
     ignore_list = s.get("ignore_list", "")
 
     php_bin = s.get("php_bin", "php")
@@ -257,6 +262,9 @@ def dofmt(eself, eview, sgter = None):
 
         if linebreak_after_namespace:
             extras.append("PSR2LnAfterNamespace")
+
+        if wrong_constructor_name:
+            extras.append("WrongConstructorName")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -964,6 +972,23 @@ class ToggleReturnEmptyCommand(sublime_plugin.TextCommand):
             s.set("remove_return_empty", True)
             print("phpfmt: remove empty returns enabled")
             sublime.status_message("phpfmt: remove empty returns enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+
+class ToggleWrongConstructorNameCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        wrong_constructor_name = s.get("wrong_constructor_name", False)
+
+        if wrong_constructor_name:
+            s.set("wrong_constructor_name", False)
+            print("phpfmt: update old style constructor disabled")
+            sublime.status_message("phpfmt: update old style constructor disabled")
+        else:
+            s.set("wrong_constructor_name", True)
+            print("phpfmt: update old style constructor enabled")
+            sublime.status_message("phpfmt: update old style constructor enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
