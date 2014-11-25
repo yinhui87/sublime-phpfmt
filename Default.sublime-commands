@@ -18,6 +18,7 @@
     {"caption": "phpfmt: toggle PSR1", "command": "toggle_psr_one"},
     {"caption": "phpfmt: toggle PSR2", "command": "toggle_psr_two"},
     {"caption": "phpfmt: toggle removal of empty returns ('return null;')", "command": "toggle_return_empty"},
+    {"caption": "phpfmt: toggle replace join() with implode()", "command": "toggle_join_to_implode"},
     {"caption": "phpfmt: toggle smart linebreak after open curly", "command": "toggle_smart_linebreak_after_curly"},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle_visibility_order"},
     {"caption": "phpfmt: toggle yoda mode", "command": "toggle_yoda"},

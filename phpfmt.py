@@ -29,6 +29,7 @@ def dofmtsel(code):
     remove_return_empty = s.get("remove_return_empty", False)
     add_missing_parentheses = s.get("add_missing_parentheses", False)
     wrong_constructor_name = s.get("wrong_constructor_name", False)
+    join_to_implode = s.get("join_to_implode", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -86,6 +87,9 @@ def dofmtsel(code):
 
     if wrong_constructor_name:
         extras.append("WrongConstructorName")
+
+    if join_to_implode:
+        extras.append("JoinToImplode")
 
     if len(extras) > 0:
         cmd_fmt.append("--passes="+','.join(extras))
@@ -147,6 +151,7 @@ def dofmt(eself, eview, sgter = None):
     remove_return_empty = s.get("remove_return_empty", False)
     add_missing_parentheses = s.get("add_missing_parentheses", False)
     wrong_constructor_name = s.get("wrong_constructor_name", False)
+    join_to_implode = s.get("join_to_implode", False)
     ignore_list = s.get("ignore_list", "")
 
     php_bin = s.get("php_bin", "php")
@@ -265,6 +270,9 @@ def dofmt(eself, eview, sgter = None):
 
         if wrong_constructor_name:
             extras.append("WrongConstructorName")
+
+        if join_to_implode:
+            extras.append("JoinToImplode")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -1105,6 +1113,22 @@ class ToggleWrongConstructorNameCommand(sublime_plugin.TextCommand):
             s.set("wrong_constructor_name", True)
             print("phpfmt: update old style constructor enabled")
             sublime.status_message("phpfmt: update old style constructor enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleJoinToImplodeCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        join_to_implode = s.get("join_to_implode", False)
+
+        if join_to_implode:
+            s.set("join_to_implode", False)
+            print("phpfmt: replace join() to implode() disabled")
+            sublime.status_message("phpfmt: replace join() to implode() disabled")
+        else:
+            s.set("join_to_implode", True)
+            print("phpfmt: replace join() to implode() enabled")
+            sublime.status_message("phpfmt: replace join() to implode() enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
