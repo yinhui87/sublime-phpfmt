@@ -30,6 +30,7 @@ def dofmtsel(code):
     add_missing_parentheses = s.get("add_missing_parentheses", False)
     wrong_constructor_name = s.get("wrong_constructor_name", False)
     join_to_implode = s.get("join_to_implode", False)
+    encapsulate_namespaces = s.get("encapsulate_namespaces", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
 
@@ -95,6 +96,9 @@ def dofmtsel(code):
         cmd_fmt.append("--passes="+','.join(extras))
 
     preextras = []
+    if encapsulate_namespaces:
+        preextras.append("EncapsulateNamespaces")
+
     if linebreak_between_methods:
         preextras.append("SpaceBetweenMethods")
 
@@ -152,6 +156,7 @@ def dofmt(eself, eview, sgter = None):
     add_missing_parentheses = s.get("add_missing_parentheses", False)
     wrong_constructor_name = s.get("wrong_constructor_name", False)
     join_to_implode = s.get("join_to_implode", False)
+    encapsulate_namespaces = s.get("encapsulate_namespaces", False)
     ignore_list = s.get("ignore_list", "")
 
     php_bin = s.get("php_bin", "php")
@@ -278,6 +283,9 @@ def dofmt(eself, eview, sgter = None):
             cmd_fmt.append("--passes="+','.join(extras))
 
         preextras = []
+        if encapsulate_namespaces:
+            preextras.append("EncapsulateNamespaces")
+
         if linebreak_between_methods:
             preextras.append("SpaceBetweenMethods")
 
@@ -1129,6 +1137,22 @@ class ToggleJoinToImplodeCommand(sublime_plugin.TextCommand):
             s.set("join_to_implode", True)
             print("phpfmt: replace join() to implode() enabled")
             sublime.status_message("phpfmt: replace join() to implode() enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class ToggleEncapsulateNamespacesCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        encapsulate_namespaces = s.get("encapsulate_namespaces", False)
+
+        if encapsulate_namespaces:
+            s.set("encapsulate_namespaces", False)
+            print("phpfmt: automatic namespace encapsulation disabled")
+            sublime.status_message("phpfmt: automatic namespace encapsulation disabled")
+        else:
+            s.set("encapsulate_namespaces", True)
+            print("phpfmt: automatic namespace encapsulation enabled")
+            sublime.status_message("phpfmt: automatic namespace encapsulation enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
