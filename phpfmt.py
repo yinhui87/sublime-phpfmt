@@ -14,6 +14,7 @@ def dofmtsel(code):
     debug = s.get("debug", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
+    psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
     enable_auto_align = s.get("enable_auto_align", False)
@@ -46,10 +47,14 @@ def dofmtsel(code):
 
     if psr:
         psr1 = True
+        psr1_naming = True
         psr2 = True
 
     if psr1:
         cmd_fmt.append("--psr1")
+
+    if psr1_naming:
+        cmd_fmt.append("--psr1-naming")
 
     if psr2:
         cmd_fmt.append("--psr2")
@@ -139,6 +144,7 @@ def dofmt(eself, eview, sgter = None):
     debug = s.get("debug", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
+    psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
     enable_auto_align = s.get("enable_auto_align", False)
@@ -226,10 +232,14 @@ def dofmt(eself, eview, sgter = None):
 
         if psr:
             psr1 = True
+            psr1_naming = True
             psr2 = True
 
         if psr1:
             cmd_fmt.append("--psr1")
+
+        if psr1_naming:
+            cmd_fmt.append("--psr1-naming")
 
         if psr2:
             cmd_fmt.append("--psr2")
@@ -338,6 +348,7 @@ def dogeneratephpdoc(eself, eview):
     debug = s.get("debug", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
+    psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
     enable_auto_align = s.get("enable_auto_align", False)
@@ -390,10 +401,14 @@ def dogeneratephpdoc(eself, eview):
 
         if psr:
             psr1 = True
+            psr1_naming = True
             psr2 = True
 
         if psr1:
             cmd_fmt.append("--psr1")
+
+        if psr1_naming:
+            cmd_fmt.append("--psr1-naming")
 
         if psr2:
             cmd_fmt.append("--psr2")
@@ -454,6 +469,7 @@ def doreordermethod(eself, eview):
     debug = s.get("debug", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
+    psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
     enable_auto_align = s.get("enable_auto_align", False)
@@ -506,10 +522,14 @@ def doreordermethod(eself, eview):
 
         if psr:
             psr1 = True
+            psr1_naming = True
             psr2 = True
 
         if psr1:
             cmd_fmt.append("--psr1")
+
+        if psr1_naming:
+            cmd_fmt.append("--psr1-naming")
 
         if psr2:
             cmd_fmt.append("--psr2")
@@ -569,6 +589,7 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
     debug = s.get("debug", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
+    psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     indent_with_space = s.get("indent_with_space", False)
     enable_auto_align = s.get("enable_auto_align", False)
@@ -891,6 +912,23 @@ class TogglePsrOneCommand(sublime_plugin.TextCommand):
             s.set("psr1", True)
             print("phpfmt: PSR1 enable")
             sublime.status_message("phpfmt: PSR1 enable")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+class TogglePsrOneNamingCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        psr1 = s.get("psr1", False)
+        psr1_naming = s.get("psr1_naming", psr1)
+
+        if psr1_naming:
+            s.set("psr1_naming", False)
+            print("phpfmt PSR1 Class and Method Naming disabled")
+            sublime.status_message("phpfmt PSR1 Class and Method Naming disabled")
+        else:
+            s.set("psr1_naming", True)
+            print("phpfmt PSR1 Class and Method Naming enable")
+            sublime.status_message("phpfmt PSR1 Class and Method Naming enable")
 
         sublime.save_settings('phpfmt.sublime-settings')
 

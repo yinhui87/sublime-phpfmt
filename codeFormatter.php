@@ -1523,6 +1523,14 @@ class EncapsulateNamespaces extends AdditionalPass {
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
+			if (T_CLOSE_TAG == $id) {
+				return $source;
+			}
+		}
+		reset($this->tkns);
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
 			switch ($id) {
 				case T_NAMESPACE:
 					$this->append_code($text);
@@ -4710,8 +4718,11 @@ class PsrDecorator {
 	public static function PSR1(CodeFormatter $fmt) {
 		$fmt->addPass(new PSR1OpenTags());
 		$fmt->addPass(new PSR1BOMMark());
-		$fmt->addPass(new PSR1ClassNames());
 		$fmt->addPass(new PSR1ClassConstants());
+	}
+
+	public static function PSR1_naming(CodeFormatter $fmt) {
+		$fmt->addPass(new PSR1ClassNames());
 		$fmt->addPass(new PSR1MethodNames());
 	}
 
@@ -4726,6 +4737,7 @@ class PsrDecorator {
 
 	public static function decorate(CodeFormatter $fmt) {
 		self::PSR1($fmt);
+		self::PSR1_naming($fmt);
 		self::PSR2($fmt);
 	}
 };
@@ -4750,9 +4762,8 @@ final class CodeFormatter {
 	}
 }
 if (!isset($testEnv)) {
-	$opts = getopt('ho:', ['help-pass:', 'list', 'yoda', 'smart_linebreak_after_curly', 'prepasses:', 'passes:', 'oracleDB::', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
-	if (isset($opts['h']) || isset($opts['help'])) {
-		echo 'Usage: ' . $argv[0] . ' [-ho] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
+	function show_help($argv) {
+		echo 'Usage: ' . $argv[0] . ' [-ho] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr1-naming] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
 		$options = [
 			'--list' => 'list possible transformations',
 			'--constructor=type' => 'analyse classes for attributes and generate constructor - camel, snake, golang',
@@ -4761,6 +4772,7 @@ if (!isset($testEnv)) {
 			'--prepasses=pass1,passN' => 'call specific compiler pass, before the rest of stack',
 			'--passes=pass1,passN' => 'call specific compiler pass',
 			'--psr' => 'activate PSR1 and PSR2 styles',
+			'--psr1-naming' => 'activate PSR1 style - Section 3 and 4.3 - Class and method names case.',
 			'--psr1' => 'activate PSR1 style',
 			'--psr2' => 'activate PSR2 style',
 			'--setters_and_getters=type' => 'analyse classes for attributes and generate setters and getters - camel, snake, golang',
@@ -4778,6 +4790,10 @@ if (!isset($testEnv)) {
 		}
 		echo PHP_EOL, 'If <target> is blank, it reads from stdin', PHP_EOL;
 		die();
+	}
+	$opts = getopt('ho:', ['help-pass:', 'list', 'yoda', 'smart_linebreak_after_curly', 'prepasses:', 'passes:', 'oracleDB::', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr1-naming', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
+	if (isset($opts['h']) || isset($opts['help'])) {
+		show_help($argv);
 	}
 
 	if (isset($opts['help-pass'])) {
@@ -4932,6 +4948,16 @@ if (!isset($testEnv)) {
 			)
 		);
 	}
+	if (isset($opts['psr1-naming'])) {
+		PsrDecorator::PSR1_naming($fmt);
+		$argv = array_values(
+			array_filter($argv,
+				function ($v) {
+					return '--psr1-naming' !== $v;
+				}
+			)
+		);
+	}
 	if (isset($opts['psr2'])) {
 		PsrDecorator::PSR2($fmt);
 		$argv = array_values(
@@ -4985,7 +5011,6 @@ if (!isset($testEnv)) {
 	} elseif (isset($argv[1]) && is_file($argv[1])) {
 		echo $fmt->formatCode(file_get_contents($argv[1]));
 	} elseif (isset($argv[1]) && is_dir($argv[1])) {
-
 		$start = microtime(true);
 		echo 'Formatting ', $argv[1], PHP_EOL;
 		$dir = new RecursiveDirectoryIterator($argv[1]);
@@ -5005,7 +5030,11 @@ if (!isset($testEnv)) {
 		}
 		echo ' ', $fileCount, ' files', PHP_EOL;
 		echo 'Took ', ceil(microtime(true) - $start), ' seconds', PHP_EOL;
-	} else {
+	} elseif (isset($argv[1]) && '-' == $argv[1]) {
 		echo $fmt->formatCode(file_get_contents('php://stdin'));
+	} elseif (isset($argv[1]) && !is_file($argv[1])) {
+		fwrite(STDERR, "File not found: " . $argv[1] . PHP_EOL);
+	} else {
+		show_help($argv);
 	}
 }

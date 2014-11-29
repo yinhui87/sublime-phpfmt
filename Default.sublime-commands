@@ -17,6 +17,7 @@
     {"caption": "phpfmt: toggle old style constructor update", "command": "toggle_wrong_constructor_name"},
     {"caption": "phpfmt: toggle php.vet", "command": "toggle_vet"},
     {"caption": "phpfmt: toggle PSR1", "command": "toggle_psr_one"},
+    {"caption": "phpfmt: toggle PSR1 - Class and Methods names", "command": "toggle_psr_one_naming"},
     {"caption": "phpfmt: toggle PSR2", "command": "toggle_psr_two"},
     {"caption": "phpfmt: toggle removal of empty returns ('return null;')", "command": "toggle_return_empty"},
     {"caption": "phpfmt: toggle replace join() with implode()", "command": "toggle_join_to_implode"},
