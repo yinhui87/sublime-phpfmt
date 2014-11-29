@@ -2607,6 +2607,7 @@ final class ReindentColonBlocks extends FormatterPass {
 		}
 		reset($this->tkns);
 		$this->code = '';
+		$this->use_cache = true;
 
 		$switch_level = 0;
 		$switch_curly_count = [];
@@ -2616,6 +2617,7 @@ final class ReindentColonBlocks extends FormatterPass {
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
+			$this->cache = [];
 			switch ($id) {
 				case ST_QUOTE:
 					$this->append_code($text);
@@ -2659,6 +2661,9 @@ final class ReindentColonBlocks extends FormatterPass {
 							$this->append_code($text);
 						} elseif ($touched_colon && T_COMMENT == $id && !$is_next_case_or_default) {
 							$this->append_code($this->get_indent($switch_level) . $text);
+							if (!$this->right_token_is([ST_CURLY_CLOSE, T_COMMENT, T_DOC_COMMENT])) {
+								$this->append_code($this->get_indent($switch_level));
+							}
 						} elseif (!$is_next_case_or_default && !$this->right_token_is([ST_CURLY_CLOSE, T_COMMENT, T_DOC_COMMENT])) {
 							$this->append_code($text . $this->get_indent($switch_level));
 						} else {
@@ -4141,7 +4146,7 @@ EOT;
 final class PSR1BOMMark extends FormatterPass {
 	public function format($source) {
 		$bom = "\xef\xbb\xbf";
-		if ($bom === substr($source, 0, 3)) {
+		if (substr($source, 0, 3) === $bom) {
 			return substr($source, 3);
 		}
 		return $source;
@@ -4743,6 +4748,60 @@ class PsrDecorator {
 	}
 };
 
+
+class Cache {
+	const DEFAULT_CACHE_FILENAME = '.php.tools.cache';
+
+	private $db;
+
+	public function __construct($filename) {
+		$start_db_creation = false;
+		if (is_dir($filename)) {
+			$filename = realpath($filename) . DIRECTORY_SEPARATOR . self::DEFAULT_CACHE_FILENAME;
+		}
+		if (!file_exists($filename)) {
+			$start_db_creation = true;
+		}
+
+		$this->set_db(new SQLite3($filename));
+		if ($start_db_creation) {
+			$this->create_db();
+		}
+	}
+
+	public function __destruct() {
+		$this->db->close();
+	}
+
+	public function create_db() {
+		$this->db->exec('CREATE TABLE cache (target TEXT, filename TEXT, hash TEXT, unique(target, filename));');
+	}
+
+	public function upsert($target, $filename, $content) {
+		$hash = $this->calculate_hash($content);
+		$this->db->exec('REPLACE INTO cache VALUES ("' . SQLite3::escapeString($target) . '","' . SQLite3::escapeString($filename) . '", "' . SQLite3::escapeString($hash) . '")');
+	}
+
+	public function is_changed($target, $filename) {
+		$row = $this->db->querySingle('SELECT hash FROM cache WHERE target = "' . SQLite3::escapeString($target) . '" AND filename = "' . SQLite3::escapeString($filename) . '"', true);
+		if (empty($row)) {
+			return true;
+		}
+		if ($this->calculate_hash(file_get_contents($filename)) != $row['hash']) {
+			return true;
+		}
+		return false;
+	}
+
+	private function set_db($db) {
+		$this->db = $db;
+	}
+
+	private function calculate_hash($content) {
+		return sprintf('%u', crc32($content));
+	}
+};
+
 final class CodeFormatter {
 	private $passes = [];
 	public function addPass(FormatterPass $pass) {
@@ -4764,17 +4823,21 @@ final class CodeFormatter {
 }
 if (!isset($testEnv)) {
 	function show_help($argv) {
-		echo 'Usage: ' . $argv[0] . ' [-ho] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr1-naming] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
+		echo 'Usage: ' . $argv[0] . ' [-ho] [--config=FILENAME] [--cache[=FILENAME]] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr1-naming] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
 		$options = [
-			'--list' => 'list possible transformations',
+			'--cache[=FILENAME]' => 'cache file. Default: ' . (Cache::DEFAULT_CACHE_FILENAME),
+			'--config=FILENAME' => 'configuration file. Default: .php.tools.ini',
 			'--constructor=type' => 'analyse classes for attributes and generate constructor - camel, snake, golang',
 			'--enable_auto_align' => 'disable auto align of ST_EQUAL and T_DOUBLE_ARROW',
+			'--ignore=PATTERN1,PATTERN2' => 'ignore file names whose names contain any PATTERN-N',
 			'--indent_with_space' => 'use spaces instead of tabs for indentation',
-			'--prepasses=pass1,passN' => 'call specific compiler pass, before the rest of stack',
+			'--list' => 'list possible transformations',
+			'--no-backup' => 'no backup file (original.php~)',
 			'--passes=pass1,passN' => 'call specific compiler pass',
+			'--prepasses=pass1,passN' => 'call specific compiler pass, before the rest of stack',
 			'--psr' => 'activate PSR1 and PSR2 styles',
-			'--psr1-naming' => 'activate PSR1 style - Section 3 and 4.3 - Class and method names case.',
 			'--psr1' => 'activate PSR1 style',
+			'--psr1-naming' => 'activate PSR1 style - Section 3 and 4.3 - Class and method names case.',
 			'--psr2' => 'activate PSR2 style',
 			'--setters_and_getters=type' => 'analyse classes for attributes and generate setters and getters - camel, snake, golang',
 			'--smart_linebreak_after_curly' => 'convert multistatement blocks into multiline blocks',
@@ -4789,10 +4852,53 @@ if (!isset($testEnv)) {
 		foreach ($options as $k => $v) {
 			echo '  ', str_pad($k, $maxLen), '  ', $v, PHP_EOL;
 		}
-		echo PHP_EOL, 'If <target> is blank, it reads from stdin', PHP_EOL;
+		echo PHP_EOL, 'If - is blank, it reads from stdin', PHP_EOL;
 		die();
 	}
-	$opts = getopt('ho:', ['help-pass:', 'list', 'yoda', 'smart_linebreak_after_curly', 'prepasses:', 'passes:', 'oracleDB::', 'help', 'setters_and_getters:', 'constructor:', 'psr', 'psr1', 'psr1-naming', 'psr2', 'indent_with_space', 'enable_auto_align', 'visibility_order']);
+	$opts = getopt(
+		'ho:',
+		[
+			'cache::',
+			'config:',
+			'constructor:',
+			'enable_auto_align',
+			'help',
+			'help-pass:',
+			'ignore',
+			'indent_with_space',
+			'list',
+			'no-backup',
+			'oracleDB::',
+			'passes:',
+			'prepasses:',
+			'psr',
+			'psr1',
+			'psr1-naming',
+			'psr2',
+			'setters_and_getters:',
+			'smart_linebreak_after_curly',
+			'visibility_order',
+			'yoda',
+		]
+	);
+	if (isset($opts['config'])) {
+		$argv = array_values(
+			array_filter($argv,
+				function ($v) {
+					return substr($v, 0, strlen('--config')) !== '--config';
+				}
+			)
+		);
+		if (!file_exists($opts['config']) || !is_file($opts['config'])) {
+			fwrite(STDERR, 'Custom configuration not file found' . PHP_EOL);
+			exit(255);
+		}
+		$opts = parse_ini_file($opts['config']);
+	} elseif (file_exists('.php.tools.ini') && is_file('.php.tools.ini')) {
+		fwrite(STDERR, 'Configuration file found' . PHP_EOL);
+		$opts = parse_ini_file('.php.tools.ini');
+
+	}
 	if (isset($opts['h']) || isset($opts['help'])) {
 		show_help($argv);
 	}
@@ -4817,6 +4923,45 @@ if (!isset($testEnv)) {
 		}
 		die();
 	}
+
+	$cache = null;
+	if (isset($opts['cache'])) {
+		$argv = array_values(
+			array_filter($argv,
+				function ($v) {
+					return substr($v, 0, strlen('--cache')) !== '--cache';
+				}
+			)
+		);
+		$cache = new Cache($opts['cache']);
+		fwrite(STDERR, 'Using cache ...' . PHP_EOL);
+	}
+	$backup = true;
+	if (isset($opts['no-backup'])) {
+		$argv = array_values(
+			array_filter($argv,
+				function ($v) {
+					return '--no-backup' !== $v;
+				}
+			)
+		);
+		$backup = false;
+	}
+
+	$ignore_list = null;
+	if (isset($opts['ignore'])) {
+		$argv = array_values(
+			array_filter($argv,
+				function ($v) {
+					return substr($v, 0, strlen('--ignore')) !== '--ignore';
+				}
+			)
+		);
+		$ignore_list = array_map(function ($v) {
+			return trim($v);
+		}, explode(',', $opts['ignore']));
+	}
+
 	$fmt = new CodeFormatter();
 	if (isset($opts['prepasses'])) {
 		$optPasses = array_map(function ($v) {
@@ -5022,30 +5167,51 @@ if (!isset($testEnv)) {
 		$start = microtime(true);
 		fwrite(STDERR, 'Formatting ...' . PHP_EOL);
 		$missing_files = [];
-		$fileCount = 0;
+		$file_count = 0;
+
+		$cache_hit_count = 0;
 		for ($i = 1; $i < $argc; ++$i) {
 			if (!isset($argv[$i])) {
 				continue;
 			}
 			if (is_file($argv[$i])) {
 				$file = $argv[$i];
-				++$fileCount;
+				++$file_count;
 				fwrite(STDERR, '.');
 				file_put_contents($file . '-tmp', $fmt->formatCode(file_get_contents($file)));
 				rename($file . '-tmp', $file);
 			} elseif (is_dir($argv[$i])) {
-				$dir = new RecursiveDirectoryIterator($argv[$i]);
+				$target_dir = $argv[$i];
+				$dir = new RecursiveDirectoryIterator($target_dir);
 				$it = new RecursiveIteratorIterator($dir);
 				$files = new RegexIterator($it, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
 				foreach ($files as $file) {
 					$file = $file[0];
-					++$fileCount;
+					if (null !== $ignore_list) {
+						foreach ($ignore_list as $pattern) {
+							if (false !== strpos($file, $pattern)) {
+								continue 2;
+							}
+						}
+					}
+
+					++$file_count;
+					if (null !== $cache) {
+						if (!$cache->is_changed($target_dir, $file)) {
+							++$cache_hit_count;
+							continue;
+						}
+					}
 					fwrite(STDERR, '.');
-					file_put_contents($file . '-tmp', $fmt->formatCode(file_get_contents($file)));
-					rename($file, $file . '~');
+					$fmtCode = $fmt->formatCode(file_get_contents($file));
+					if (null !== $cache) {
+						$cache->upsert($target_dir, $file, $fmtCode);
+					}
+					file_put_contents($file . '-tmp', $fmtCode);
+					$backup && rename($file, $file . '~');
 					rename($file . '-tmp', $file);
-					if (0 == ($fileCount % 20)) {
-						fwrite(STDERR, ' ' . $fileCount . PHP_EOL);
+					if (0 == ($file_count % 20)) {
+						fwrite(STDERR, ' ' . $file_count . PHP_EOL);
 					}
 				}
 				continue;
@@ -5054,12 +5220,16 @@ if (!isset($testEnv)) {
 				$missing_files[] = $argv[$i];
 				fwrite(STDERR, '!');
 			}
-			if (0 == ($fileCount % 20)) {
-				fwrite(STDERR, ' ', $fileCount, PHP_EOL);
+			if (0 == ($file_count % 20)) {
+				fwrite(STDERR, ' ', $file_count, PHP_EOL);
 			}
 		}
-		fwrite(STDERR, ' ' . $fileCount . ' files' . PHP_EOL);
-		fwrite(STDERR, 'Took ' . ceil(microtime(true) - $start) . ' seconds' . PHP_EOL);
+		fwrite(STDERR, PHP_EOL);
+		if (null !== $cache) {
+			fwrite(STDERR, ' ' . $cache_hit_count . ' files untouched (cache hit)' . PHP_EOL);
+		}
+		fwrite(STDERR, ' ' . $file_count . ' files total' . PHP_EOL);
+		fwrite(STDERR, 'Took ' . round(microtime(true) - $start, 2) . 's' . PHP_EOL);
 		if (sizeof($missing_files)) {
 			fwrite(STDERR, "Files not found: " . PHP_EOL);
 			foreach ($missing_files as $file) {
