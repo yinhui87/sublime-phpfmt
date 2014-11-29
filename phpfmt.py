@@ -9,135 +9,6 @@ import time
 import csv
 from os.path import dirname, realpath
 
-def dofmtsel(code):
-    s = sublime.load_settings('phpfmt.sublime-settings')
-    debug = s.get("debug", False)
-    psr = s.get("psr1_and_2", False)
-    psr1 = s.get("psr1", False)
-    psr1_naming = s.get("psr1_naming", psr1)
-    psr2 = s.get("psr2", False)
-    indent_with_space = s.get("indent_with_space", False)
-    enable_auto_align = s.get("enable_auto_align", False)
-    visibility_order = s.get("visibility_order", False)
-    short_array = s.get("short_array", False)
-    merge_else_if = s.get("merge_else_if", False)
-    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
-    yoda = s.get("yoda", False)
-    autopreincrement = s.get("autopreincrement", False)
-    remove_leading_slash = s.get("remove_leading_slash", False)
-    linebreak_after_namespace = s.get("linebreak_after_namespace", False)
-    linebreak_between_methods = s.get("linebreak_between_methods", False)
-    remove_return_empty = s.get("remove_return_empty", False)
-    add_missing_parentheses = s.get("add_missing_parentheses", False)
-    wrong_constructor_name = s.get("wrong_constructor_name", False)
-    join_to_implode = s.get("join_to_implode", False)
-    encapsulate_namespaces = s.get("encapsulate_namespaces", False)
-    php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
-
-    if debug:
-        print("phpfmt (sel):", code)
-
-    cmd_fmt = [php_bin]
-
-    if not debug:
-        cmd_fmt.append("-ddisplay_errors=stderr")
-
-    cmd_fmt.append(formatter_path)
-    cmd_fmt.append('-')
-
-    if psr:
-        psr1 = True
-        psr1_naming = True
-        psr2 = True
-
-    if psr1:
-        cmd_fmt.append("--psr1")
-
-    if psr1_naming:
-        cmd_fmt.append("--psr1-naming")
-
-    if psr2:
-        cmd_fmt.append("--psr2")
-
-    if indent_with_space:
-        cmd_fmt.append("--indent_with_space")
-
-    if enable_auto_align:
-        cmd_fmt.append("--enable_auto_align")
-
-    if visibility_order:
-        cmd_fmt.append("--visibility_order")
-
-    if smart_linebreak_after_curly:
-        cmd_fmt.append("--smart_linebreak_after_curly")
-
-    if yoda:
-        cmd_fmt.append("--yoda")
-
-
-    extras = []
-    if short_array:
-        extras.append("ShortArray")
-
-    if merge_else_if:
-        extras.append("MergeElseIf")
-
-    if autopreincrement:
-        extras.append("AutoPreincrement")
-
-    if remove_leading_slash:
-        extras.append("RemoveUseLeadingSlash")
-
-    if linebreak_after_namespace:
-        extras.append("PSR2LnAfterNamespace")
-
-    if wrong_constructor_name:
-        extras.append("WrongConstructorName")
-
-    if join_to_implode:
-        extras.append("JoinToImplode")
-
-    if len(extras) > 0:
-        cmd_fmt.append("--passes="+','.join(extras))
-
-    preextras = []
-    if encapsulate_namespaces:
-        preextras.append("EncapsulateNamespaces")
-
-    if linebreak_between_methods:
-        preextras.append("SpaceBetweenMethods")
-
-    if remove_return_empty:
-        preextras.append("ReturnNull")
-
-    if add_missing_parentheses:
-        preextras.append("AddMissingParentheses")
-
-    if len(preextras) > 0:
-        cmd_fmt.append("--prepasses="+','.join(preextras))
-
-    if debug:
-        print("cmd_fmt (sel): ", cmd_fmt)
-
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-
-    originalCode = code
-    if "<?" != originalCode[:2]:
-        code = '<?php/*REMOVEME*/'+"\n"+code;
-    bufferedCode = bytes(code, 'utf-8');
-    res, err = p.communicate(input=bufferedCode)
-
-    if debug:
-        print("err:\n", err.decode('utf-8'))
-    return res.decode('utf-8').replace('<?php/*REMOVEME*/'+"\n", '').replace('#!/usr/bin/env php'+"\n", '')
-
-
 def dofmt(eself, eview, sgter = None):
     self = eself
     view = eview
@@ -168,6 +39,7 @@ def dofmt(eself, eview, sgter = None):
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
+    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -230,6 +102,7 @@ def dofmt(eself, eview, sgter = None):
             cmd_fmt.append("-ddisplay_errors=stderr")
 
         cmd_fmt.append(formatter_path)
+        cmd_fmt.append("--config="+config_file)
 
         if psr:
             psr1 = True
@@ -350,6 +223,7 @@ def dogeneratephpdoc(eself, eview):
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
+    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -390,6 +264,7 @@ def dogeneratephpdoc(eself, eview):
             cmd_fmt.append("-ddisplay_errors=stderr")
 
         cmd_fmt.append(formatter_path)
+        cmd_fmt.append("--config="+config_file)
 
         if psr:
             psr1 = True
@@ -462,6 +337,7 @@ def doreordermethod(eself, eview):
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
+    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -502,6 +378,7 @@ def doreordermethod(eself, eview):
             cmd_fmt.append("-ddisplay_errors=stderr")
 
         cmd_fmt.append(formatter_path)
+        cmd_fmt.append("--config="+config_file)
 
         if psr:
             psr1 = True
@@ -784,14 +661,6 @@ class CalltipCommand(sublime_plugin.TextCommand):
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view)
-
-class FmtSelectCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        for region in self.view.sel():
-            if not region.empty():
-                code = self.view.substr(region)
-                result = dofmtsel(code)
-                self.view.replace(edit, region, result)
 
 class ToggleVetCommand(sublime_plugin.TextCommand):
     def run(self, edit):
