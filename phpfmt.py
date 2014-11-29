@@ -33,7 +33,7 @@ def dofmtsel(code):
     join_to_implode = s.get("join_to_implode", False)
     encapsulate_namespaces = s.get("encapsulate_namespaces", False)
     php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
 
     if debug:
         print("phpfmt (sel):", code)
@@ -44,6 +44,7 @@ def dofmtsel(code):
         cmd_fmt.append("-ddisplay_errors=stderr")
 
     cmd_fmt.append(formatter_path)
+    cmd_fmt.append('-')
 
     if psr:
         psr1 = True
@@ -134,7 +135,7 @@ def dofmtsel(code):
 
     if debug:
         print("err:\n", err.decode('utf-8'))
-    return res.decode('utf-8').replace('<?php/*REMOVEME*/'+"\n", '')
+    return res.decode('utf-8').replace('<?php/*REMOVEME*/'+"\n", '').replace('#!/usr/bin/env php'+"\n", '')
 
 
 def dofmt(eself, eview, sgter = None):
@@ -166,7 +167,7 @@ def dofmt(eself, eview, sgter = None):
     ignore_list = s.get("ignore_list", "")
 
     php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -324,15 +325,6 @@ def dofmt(eself, eview, sgter = None):
         res, err = p.communicate()
         if debug:
             print("err:\n", err.decode('utf-8'))
-        if int(sublime.version()) < 3000:
-            with open(uri_tmp, 'w+') as f:
-                f.write(res)
-        else:
-            with open(uri_tmp, 'bw+') as f:
-                f.write(res)
-        if debug:
-            print("Stored:", len(res), "bytes")
-        shutil.move(uri_tmp, uri)
         sublime.set_timeout(revert_active_window, 50)
         time.sleep(1)
         sublime.active_window().active_view().run_command("phpfmt_vet")
@@ -357,7 +349,7 @@ def dogeneratephpdoc(eself, eview):
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -449,15 +441,6 @@ def dogeneratephpdoc(eself, eview):
             p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         res, err = p.communicate()
         print("err:\n", err.decode('utf-8'))
-        if int(sublime.version()) < 3000:
-            with open(uri_tmp, 'w+') as f:
-                f.write(res)
-        else:
-            with open(uri_tmp, 'bw+') as f:
-                f.write(res)
-        if debug:
-            print("Stored:", len(res), "bytes")
-        shutil.move(uri_tmp, uri)
         sublime.set_timeout(revert_active_window, 50)
     else:
         print("lint error: ", lint_out)
@@ -478,7 +461,7 @@ def doreordermethod(eself, eview):
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "codeFormatter.php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -568,15 +551,6 @@ def doreordermethod(eself, eview):
             p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         res, err = p.communicate()
         print("err:\n", err.decode('utf-8'))
-        if int(sublime.version()) < 3000:
-            with open(uri_tmp, 'w+') as f:
-                f.write(res)
-        else:
-            with open(uri_tmp, 'bw+') as f:
-                f.write(res)
-        if debug:
-            print("Stored:", len(res), "bytes")
-        shutil.move(uri_tmp, uri)
         sublime.set_timeout(revert_active_window, 50)
     else:
         print("lint error: ", lint_out)
