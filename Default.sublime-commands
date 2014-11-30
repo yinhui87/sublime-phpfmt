@@ -9,6 +9,7 @@
     {"caption": "phpfmt: toggle dependency autoimport", "command": "toggle_autoimport"},
     {"caption": "phpfmt: toggle format on save", "command": "toggle_format_on_save"},
     {"caption": "phpfmt: toggle indent with space", "command": "toggle_indent_with_space"},
+    {"caption": "phpfmt: toggle laravel style (experimental)", "command": "toggle_laravel_style"},
     {"caption": "phpfmt: toggle leading slash in use clauses", "command": "toggle_remove_leading_slash"},
     {"caption": "phpfmt: toggle linebreak after namespace", "command": "toggle_linebreak_after_namespace"},
     {"caption": "phpfmt: toggle linebreak between methods", "command": "toggle_linebreak_between_methods"},

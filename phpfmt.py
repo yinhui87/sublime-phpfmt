@@ -36,6 +36,7 @@ def dofmt(eself, eview, sgter = None):
     join_to_implode = s.get("join_to_implode", False)
     encapsulate_namespaces = s.get("encapsulate_namespaces", False)
     ignore_list = s.get("ignore_list", "")
+    laravel_style = s.get("laravel_style", False)
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
@@ -133,6 +134,9 @@ def dofmt(eself, eview, sgter = None):
         if yoda:
             cmd_fmt.append("--yoda")
 
+        if laravel_style:
+            cmd_fmt.append("--laravel")
+
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
             cmd_fmt.append("--constructor="+sgter)
@@ -224,6 +228,7 @@ def dogeneratephpdoc(eself, eview):
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
+    laravel_style = s.get("laravel_style", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -288,6 +293,9 @@ def dogeneratephpdoc(eself, eview):
 
         if visibility_order:
             cmd_fmt.append("--visibility_order")
+
+        if laravel_style:
+            cmd_fmt.append("--laravel")
 
         extras = []
         if short_array:
@@ -338,6 +346,7 @@ def doreordermethod(eself, eview):
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
+    laravel_style = s.get("laravel_style", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -402,6 +411,9 @@ def doreordermethod(eself, eview):
 
         if visibility_order:
             cmd_fmt.append("--visibility_order")
+
+        if laravel_style:
+            cmd_fmt.append("--laravel")
 
         extras = ['OrderMethod']
         if short_array:
@@ -1036,6 +1048,24 @@ class ToggleEncapsulateNamespacesCommand(sublime_plugin.TextCommand):
             sublime.status_message("phpfmt: automatic namespace encapsulation enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
+
+
+class ToggleLaravelStyleCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        laravel_style = s.get("laravel_style", False)
+
+        if laravel_style:
+            s.set("laravel_style", False)
+            print("phpfmt: Laravel style disabled")
+            sublime.status_message("phpfmt: Laravel style disabled")
+        else:
+            s.set("laravel_style", True)
+            print("phpfmt: Laravel style enabled")
+            sublime.status_message("phpfmt: Laravel style enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
 
 class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
