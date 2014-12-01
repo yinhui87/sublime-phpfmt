@@ -37,6 +37,7 @@ def dofmt(eself, eview, sgter = None):
     encapsulate_namespaces = s.get("encapsulate_namespaces", False)
     ignore_list = s.get("ignore_list", "")
     laravel_style = s.get("laravel_style", False)
+    cakephp_style = s.get("cakephp_style", False)
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
@@ -137,6 +138,9 @@ def dofmt(eself, eview, sgter = None):
         if laravel_style:
             cmd_fmt.append("--laravel")
 
+        if cakephp_style:
+            cmd_fmt.append("--cakephp")
+
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
             cmd_fmt.append("--constructor="+sgter)
@@ -229,6 +233,7 @@ def dogeneratephpdoc(eself, eview):
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
     laravel_style = s.get("laravel_style", False)
+    cakephp_style = s.get("cakephp_style", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -296,6 +301,9 @@ def dogeneratephpdoc(eself, eview):
 
         if laravel_style:
             cmd_fmt.append("--laravel")
+
+        if cakephp_style:
+            cmd_fmt.append("--cakephp")
 
         extras = []
         if short_array:
@@ -347,6 +355,7 @@ def doreordermethod(eself, eview):
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
     laravel_style = s.get("laravel_style", False)
+    cakephp_style = s.get("cakephp_style", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -414,6 +423,9 @@ def doreordermethod(eself, eview):
 
         if laravel_style:
             cmd_fmt.append("--laravel")
+
+        if cakephp_style:
+            cmd_fmt.append("--cakephp")
 
         extras = ['OrderMethod']
         if short_array:
@@ -1063,6 +1075,23 @@ class ToggleLaravelStyleCommand(sublime_plugin.TextCommand):
             s.set("laravel_style", True)
             print("phpfmt: Laravel style enabled")
             sublime.status_message("phpfmt: Laravel style enabled")
+
+        sublime.save_settings('phpfmt.sublime-settings')
+
+
+class ToggleCakephpStyleCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        cakephp_style = s.get("cakephp_style", False)
+
+        if cakephp_style:
+            s.set("cakephp_style", False)
+            print("phpfmt: CakePHP style disabled")
+            sublime.status_message("phpfmt: CakePHP style disabled")
+        else:
+            s.set("cakephp_style", True)
+            print("phpfmt: CakePHP style enabled")
+            sublime.status_message("phpfmt: CakePHP style enabled")
 
         sublime.save_settings('phpfmt.sublime-settings')
 
