@@ -686,415 +686,51 @@ class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view)
 
-class ToggleVetCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
+class ToggleCommand(sublime_plugin.TextCommand):
+    def run(self, edit, option):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        vet = s.get("vet", False)
+        options = {
+            "add_missing_parentheses":"add missing parentheses",
+            "autocomplete":"autocomplete",
+            "autoimport":"dependency autoimport",
+            "autopreincrement":"automatic preincrement",
+            "cakephp_style":"CakePHP style",
+            "enable_auto_align":"auto align",
+            "encapsulate_namespaces":"automatic namespace encapsulation",
+            "format_on_save":"format on save",
+            "indent_with_space":"indent with space",
+            "join_to_implode":"replace join() to implode()",
+            "laravel_style":"Laravel style",
+            "linebreak_after_namespace":"automatic linebreak after namespace",
+            "linebreak_between_methods":"automatic linebreak between methods",
+            "merge_else_if":"merge else if into elseif",
+            "psr1":"PSR1",
+            "psr1_naming":"PSR1 Class and Method Naming",
+            "psr2":"PSR2",
+            "remove_leading_slash":"remove_leading_slash",
+            "remove_return_empty":"remove empty returns",
+            "short_array":"short array",
+            "smart_linebreak_after_curly":"smart linebreak after curly",
+            "vet":"vet",
+            "visibility_order":"visibility order",
+            "wrong_constructor_name":"update old style constructor",
+            "yoda":"yoda mode",
+        }
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        value = s.get(option, False)
 
-        if vet:
-            s.set("vet", False)
-            print("phpfmt: vet disabled")
-            sublime.status_message("phpfmt: vet disabled")
+        if value:
+            s.set(option, False)
+            msg = "phpfmt: "+options[option]+" disabled"
+            print(msg)
+            sublime.status_message(msg)
         else:
-            s.set("vet", True)
-            print("phpfmt: vet enabled")
-            sublime.status_message("phpfmt: vet enabled")
+            s.set(option, True)
+            msg = "phpfmt: "+options[option]+" enabled"
+            print(msg)
+            sublime.status_message(msg)
 
         sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleRemoveLeadingSlash(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        remove_leading_slash = s.get("remove_leading_slash", False)
-
-        if remove_leading_slash:
-            s.set("remove_leading_slash", False)
-            print("phpfmt: remove leading slash disabled")
-            sublime.status_message("phpfmt: remove leading slash disabled")
-        else:
-            s.set("remove_leading_slash", True)
-            print("phpfmt: remove leading slash enabled")
-            sublime.status_message("phpfmt: remove leading slash enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleAutoAlignCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        enable_auto_align = s.get("enable_auto_align", False)
-
-        if enable_auto_align:
-            s.set("enable_auto_align", False)
-            print("phpfmt: auto align disabled")
-            sublime.status_message("phpfmt: auto align disabled")
-        else:
-            s.set("enable_auto_align", True)
-            print("phpfmt: auto align enabled")
-            sublime.status_message("phpfmt: auto align enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleVisibilityOrderCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        visibility_order = s.get("visibility_order", False)
-
-        if visibility_order:
-            s.set("visibility_order", False)
-            print("phpfmt: visibility order disabled")
-            sublime.status_message("phpfmt: visibility order disabled")
-        else:
-            s.set("visibility_order", True)
-            print("phpfmt: visibility order enabled")
-            sublime.status_message("phpfmt: visibility order enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleIndentWithSpaceCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        indent_with_space = s.get("indent_with_space", False)
-
-        if indent_with_space:
-            s.set("indent_with_space", False)
-            print("phpfmt: indent with space disabled")
-            sublime.status_message("phpfmt: indent with space disabled")
-        else:
-            s.set("indent_with_space", True)
-            print("phpfmt: indent with space enabled")
-            sublime.status_message("phpfmt: indent with space enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class TogglePsrOneCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        psr1 = s.get("psr1", False)
-
-        if psr1:
-            s.set("psr1", False)
-            print("phpfmt: PSR1 disabled")
-            sublime.status_message("phpfmt: PSR1 disabled")
-        else:
-            s.set("psr1", True)
-            print("phpfmt: PSR1 enable")
-            sublime.status_message("phpfmt: PSR1 enable")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class TogglePsrOneNamingCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        psr1 = s.get("psr1", False)
-        psr1_naming = s.get("psr1_naming", psr1)
-
-        if psr1_naming:
-            s.set("psr1_naming", False)
-            print("phpfmt PSR1 Class and Method Naming disabled")
-            sublime.status_message("phpfmt PSR1 Class and Method Naming disabled")
-        else:
-            s.set("psr1_naming", True)
-            print("phpfmt PSR1 Class and Method Naming enable")
-            sublime.status_message("phpfmt PSR1 Class and Method Naming enable")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class TogglePsrTwoCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        psr2 = s.get("psr2", False)
-
-        if psr2:
-            s.set("psr2", False)
-            print("phpfmt: PSR2 disabled")
-            sublime.status_message("phpfmt: PSR2 disabled")
-        else:
-            s.set("psr2", True)
-            print("phpfmt: PSR2 enabled")
-            sublime.status_message("phpfmt: PSR2 enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleFormatOnSaveCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        format_on_save = s.get("format_on_save", False)
-
-        if format_on_save:
-            s.set("format_on_save", False)
-            print("phpfmt: format on save disabled")
-            sublime.status_message("phpfmt: format on save disabled")
-        else:
-            s.set("format_on_save", True)
-            print("phpfmt: format on save enabled")
-            sublime.status_message("phpfmt: format on save enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleAddMissingParenthesesCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        add_missing_parentheses = s.get("add_missing_parentheses", False)
-
-        if add_missing_parentheses:
-            s.set("add_missing_parentheses", False)
-            print("phpfmt: add missing parentheses disabled")
-            sublime.status_message("phpfmt: add missing parentheses disabled")
-        else:
-            s.set("add_missing_parentheses", True)
-            print("phpfmt: add missing parentheses enabled")
-            sublime.status_message("phpfmt: add missing parentheses enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleAutocompleteCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        autocomplete = s.get("autocomplete", False)
-
-        if autocomplete:
-            s.set("autocomplete", False)
-            print("phpfmt: autocomplete disabled")
-            sublime.status_message("phpfmt: autocomplete disabled")
-        else:
-            s.set("autocomplete", True)
-            print("phpfmt: autocomplete enabled")
-            sublime.status_message("phpfmt: autocomplete enabled")
-            if not lookForOracleFile(self.view):
-                sublime.active_window().active_view().run_command("build_oracle")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleAutoimportCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        autoimport = s.get("autoimport", False)
-
-        if autoimport:
-            s.set("autoimport", False)
-            print("phpfmt: autoimport disabled")
-            sublime.status_message("phpfmt: autoimport disabled")
-        else:
-            s.set("autoimport", True)
-            print("phpfmt: autoimport enabled")
-            sublime.status_message("phpfmt: autoimport enabled")
-            if not lookForOracleFile(self.view):
-                sublime.active_window().active_view().run_command("build_oracle")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleShortArrayCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        shortArray = s.get("short_array", False)
-
-        if shortArray:
-            s.set("short_array", False)
-            print("phpfmt: shortArray disabled")
-            sublime.status_message("phpfmt: shortArray disabled")
-        else:
-            s.set("short_array", True)
-            print("phpfmt: shortArray enabled")
-            sublime.status_message("phpfmt: shortArray enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-
-class ToggleMergeElseIfCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        MergeElseIf = s.get("merge_else_if", False)
-
-        if MergeElseIf:
-            s.set("merge_else_if", False)
-            print("phpfmt: MergeElseIf disabled")
-            sublime.status_message("phpfmt: MergeElseIf disabled")
-        else:
-            s.set("merge_else_if", True)
-            print("phpfmt: MergeElseIf enabled")
-            sublime.status_message("phpfmt: MergeElseIf enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleSmartLinebreakAfterCurlyCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
-
-        if smart_linebreak_after_curly:
-            s.set("smart_linebreak_after_curly", False)
-            print("phpfmt: SmartLinebreakAfterCurly disabled")
-            sublime.status_message("phpfmt: SmartLinebreakAfterCurly disabled")
-        else:
-            s.set("smart_linebreak_after_curly", True)
-            print("phpfmt: SmartLinebreakAfterCurly enabled")
-            sublime.status_message("phpfmt: SmartLinebreakAfterCurly enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleYodaCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        yoda = s.get("yoda", False)
-
-        if yoda:
-            s.set("yoda", False)
-            print("phpfmt: Yoda Mode disabled")
-            sublime.status_message("phpfmt: Yoda Mode disabled")
-        else:
-            s.set("yoda", True)
-            print("phpfmt: Yoda Mode enabled")
-            sublime.status_message("phpfmt: Yoda Mode enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleAutopreincrementCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        autopreincrement = s.get("autopreincrement", False)
-
-        if autopreincrement:
-            s.set("autopreincrement", False)
-            print("phpfmt: automatic preincrement disabled")
-            sublime.status_message("phpfmt: automatic preincrement disabled")
-        else:
-            s.set("autopreincrement", True)
-            print("phpfmt: automatic preincrement enabled")
-            sublime.status_message("phpfmt: automatic preincrement enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleLinebreakAfterNamespaceCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        linebreak_after_namespace = s.get("linebreak_after_namespace", False)
-
-        if linebreak_after_namespace:
-            s.set("linebreak_after_namespace", False)
-            print("phpfmt: automatic linebreak after namespace disabled")
-            sublime.status_message("phpfmt: automatic linebreak after namespace disabled")
-        else:
-            s.set("linebreak_after_namespace", True)
-            print("phpfmt: automatic linebreak after namespace enabled")
-            sublime.status_message("phpfmt: automatic linebreak after namespace enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleLinebreakBetweenMethodsCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        linebreak_between_methods = s.get("linebreak_between_methods", False)
-
-        if linebreak_between_methods:
-            s.set("linebreak_between_methods", False)
-            print("phpfmt: automatic linebreak between methods disabled")
-            sublime.status_message("phpfmt: automatic linebreak between methods disabled")
-        else:
-            s.set("linebreak_between_methods", True)
-            print("phpfmt: automatic linebreak between methods enabled")
-            sublime.status_message("phpfmt: automatic linebreak between methods enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleReturnEmptyCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        remove_return_empty = s.get("remove_return_empty", False)
-
-        if remove_return_empty:
-            s.set("remove_return_empty", False)
-            print("phpfmt: remove empty returns disabled")
-            sublime.status_message("phpfmt: remove empty returns disabled")
-        else:
-            s.set("remove_return_empty", True)
-            print("phpfmt: remove empty returns enabled")
-            sublime.status_message("phpfmt: remove empty returns enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-
-class ToggleWrongConstructorNameCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        wrong_constructor_name = s.get("wrong_constructor_name", False)
-
-        if wrong_constructor_name:
-            s.set("wrong_constructor_name", False)
-            print("phpfmt: update old style constructor disabled")
-            sublime.status_message("phpfmt: update old style constructor disabled")
-        else:
-            s.set("wrong_constructor_name", True)
-            print("phpfmt: update old style constructor enabled")
-            sublime.status_message("phpfmt: update old style constructor enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleJoinToImplodeCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        join_to_implode = s.get("join_to_implode", False)
-
-        if join_to_implode:
-            s.set("join_to_implode", False)
-            print("phpfmt: replace join() to implode() disabled")
-            sublime.status_message("phpfmt: replace join() to implode() disabled")
-        else:
-            s.set("join_to_implode", True)
-            print("phpfmt: replace join() to implode() enabled")
-            sublime.status_message("phpfmt: replace join() to implode() enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-class ToggleEncapsulateNamespacesCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        encapsulate_namespaces = s.get("encapsulate_namespaces", False)
-
-        if encapsulate_namespaces:
-            s.set("encapsulate_namespaces", False)
-            print("phpfmt: automatic namespace encapsulation disabled")
-            sublime.status_message("phpfmt: automatic namespace encapsulation disabled")
-        else:
-            s.set("encapsulate_namespaces", True)
-            print("phpfmt: automatic namespace encapsulation enabled")
-            sublime.status_message("phpfmt: automatic namespace encapsulation enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-
-class ToggleLaravelStyleCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        laravel_style = s.get("laravel_style", False)
-
-        if laravel_style:
-            s.set("laravel_style", False)
-            print("phpfmt: Laravel style disabled")
-            sublime.status_message("phpfmt: Laravel style disabled")
-        else:
-            s.set("laravel_style", True)
-            print("phpfmt: Laravel style enabled")
-            sublime.status_message("phpfmt: Laravel style enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
-
-class ToggleCakephpStyleCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        cakephp_style = s.get("cakephp_style", False)
-
-        if cakephp_style:
-            s.set("cakephp_style", False)
-            print("phpfmt: CakePHP style disabled")
-            sublime.status_message("phpfmt: CakePHP style disabled")
-        else:
-            s.set("cakephp_style", True)
-            print("phpfmt: CakePHP style enabled")
-            sublime.status_message("phpfmt: CakePHP style enabled")
-
-        sublime.save_settings('phpfmt.sublime-settings')
-
 
 class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
