@@ -120,8 +120,10 @@ def dofmt(eself, eview, sgter = None):
         if psr2:
             cmd_fmt.append("--psr2")
 
-        if indent_with_space:
+        if indent_with_space is True:
             cmd_fmt.append("--indent_with_space")
+        elif indent_with_space > 0:
+            cmd_fmt.append("--indent_with_space="+str(indent_with_space))
 
         if enable_auto_align:
             cmd_fmt.append("--enable_auto_align")
@@ -292,6 +294,8 @@ def dogeneratephpdoc(eself, eview):
 
         if indent_with_space:
             cmd_fmt.append("--indent_with_space")
+        elif indent_with_space > 0:
+            cmd_fmt.append("--indent_with_space="+str(indent_with_space))
 
         if enable_auto_align:
             cmd_fmt.append("--enable_auto_align")
@@ -414,6 +418,8 @@ def doreordermethod(eself, eview):
 
         if indent_with_space:
             cmd_fmt.append("--indent_with_space")
+        elif indent_with_space > 0:
+            cmd_fmt.append("--indent_with_space="+str(indent_with_space))
 
         if enable_auto_align:
             cmd_fmt.append("--enable_auto_align")
