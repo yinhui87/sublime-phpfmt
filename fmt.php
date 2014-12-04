@@ -12,6 +12,111 @@
 //3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 //
 //THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+$concurrent = function_exists('pcntl_fork');
+if ($concurrent) {
+	define('PHP_INT_LENGTH', strlen(sprintf("%u", PHP_INT_MAX)));
+function cofunc(callable$fn) {
+	$pid = pcntl_fork();
+	if (-1 == $pid) {
+		trigger_error('could not fork', E_ERROR);
+	} elseif ($pid) {
+		// I am the parent
+	} else {
+		$params = [];
+		if (func_num_args() > 1) {
+			$params = array_slice(func_get_args(), 1);
+		}
+		call_user_func_array($fn, $params);
+		die();
+	}
+}
+
+class CSP_Channel {
+	private $ipc;
+	private $ipc_fn;
+	private $key;
+	private $closed = false;
+	private $msg_count = 0;
+	public function __construct($key = null) {
+		$this->ipc_fn = tempnam('/tmp', 'csp.' . uniqid('chn', true));
+		$this->key = ftok($this->ipc_fn, 'A');
+		$this->ipc = msg_get_queue($this->key, 0666);
+		msg_set_queue($this->ipc, $cfg = [
+			'msg_qbytes' => (1 * PHP_INT_LENGTH),
+		]);
+
+	}
+	public function close() {
+		$this->closed = true;
+		while ($this->msg_count > 0) {
+			$this->out();
+			--$this->msg_count;
+		}
+		msg_remove_queue($this->ipc);
+		file_exists($this->ipc_fn) && @unlink($this->ipc_fn);
+	}
+	public function in($msg) {
+		if ($this->closed || !msg_queue_exists($this->key)) {
+			return;
+		}
+		++$this->msg_count;
+		$shm = new Message();
+		$shm->store($msg);
+		@msg_send($this->ipc, 1, $shm->key(), false);
+	}
+	public function out() {
+		if ($this->closed || !msg_queue_exists($this->key)) {
+			return;
+		}
+		$msgtype = null;
+		$ipcmsg = null;
+		$error = null;
+		msg_receive($this->ipc, 1, $msgtype, (1 * PHP_INT_LENGTH) + 1, $ipcmsg, false, $error);
+		--$this->msg_count;
+		$shm = new Message($ipcmsg);
+		$ret = $shm->fetch();
+		return $ret;
+	}
+}
+class Message {
+	private $key;
+	private $shm;
+	public function __construct($key = null) {
+		if (null === $key) {
+			$key = ftok(tempnam(sys_get_temp_dir(), 'csp.' . uniqid('shm', true)), 'C');
+		}
+		$this->shm = shm_attach($key);
+		if (false === $this->shm) {
+			trigger_error('Unable to attach shared memory segment for channel', E_ERROR);
+		}
+		$this->key = $key;
+	}
+	public function store($msg) {
+		shm_put_var($this->shm, 1, $msg);
+		shm_detach($this->shm);
+	}
+	public function key() {
+		return sprintf('%0' . PHP_INT_LENGTH . 'd', (int) $this->key);
+	}
+	public function fetch() {
+		$ret = shm_get_var($this->shm, 1);
+		$this->destroy();
+		return $ret;
+
+	}
+	public function destroy() {
+		if (shm_has_var($this->shm, 1)) {
+			shm_remove_var($this->shm, 1);
+		}
+		shm_remove($this->shm);
+	}
+}
+
+function make_channel() {
+	return new CSP_Channel();
+}
+;
+}
 //Copyright (c) 2014, Carlos C
 //All rights reserved.
 //
@@ -232,6 +337,15 @@ abstract class FormatterPass {
 			list($id, $text) = $this->get_token($token);
 			return $text;
 		}, array_filter($tkns)));
+	}
+
+	protected function render_light($tkns = null) {
+		if (null == $tkns) {
+			$tkns = $this->tkns;
+		}
+		return implode('', array_map(function ($token) {
+			return $token[1];
+		}, $tkns));
 	}
 
 	private function resolve_ignore_list($ignore_list = []) {
@@ -1644,10 +1758,10 @@ final class ExtraCommaInArray extends FormatterPass {
 						array_pop($context_stack);
 					}
 					break;
-
 			}
+			$this->tkns[$this->ptr] = [$id, $text];
 		}
-		return $this->render();
+		return $this->render_light();
 	}
 };
 final class GeneratePHPDoc extends AdditionalPass {
@@ -4470,9 +4584,16 @@ final class PSR2CurlyOpenNextLine extends FormatterPass {
 	}
 };
 final class PSR2IndentWithSpace extends FormatterPass {
-	private $indent_spaces = '    ';
+	private $size = 4;
+
+	public function __construct($size = null) {
+		if ($size > 0) {
+			$this->size = $size;
+		}
+	}
 
 	public function format($source) {
+		$indent_spaces = str_repeat(' ', (int) $this->size);
 		$this->tkns = token_get_all($source);
 		$this->code = '';
 		while (list($index, $token) = each($this->tkns)) {
@@ -4482,7 +4603,7 @@ final class PSR2IndentWithSpace extends FormatterPass {
 				case T_COMMENT:
 				case T_DOC_COMMENT:
 				case T_WHITESPACE:
-					$this->append_code(str_replace($this->indent_char, $this->indent_spaces, $text));
+					$this->append_code(str_replace($this->indent_char, $indent_spaces, $text));
 					break;
 				default:
 					$this->append_code($text);
@@ -4996,7 +5117,7 @@ class A {
 	protected $_b;
 	public $c;
 
-	function b() {
+	public function b() {
 		if($a) {
 			noop();
 		} else {
@@ -5004,6 +5125,13 @@ class A {
 		}
 	}
 
+	protected function _c() {
+		if($a) {
+			noop();
+		} else {
+			noop();
+		}
+	}
 }
 ?>
 EOT;
@@ -5049,7 +5177,7 @@ class Cache {
 		$row = $this->db->querySingle('SELECT hash FROM cache WHERE target = "' . SQLite3::escapeString($target) . '" AND filename = "' . SQLite3::escapeString($filename) . '"', true);
 		$content = file_get_contents($filename);
 		if (empty($row)) {
-			return true;
+			return $content;
 		}
 		if ($this->calculate_hash($content) != $row['hash']) {
 			return $content;
@@ -5066,7 +5194,6 @@ class Cache {
 	}
 }
 ;
-
 final class CodeFormatter {
 	private $passes = [];
 	public function addPass(FormatterPass $pass) {
@@ -5085,10 +5212,21 @@ final class CodeFormatter {
 		}
 		return $source;
 	}
+};
+
+function extract_from_argv($argv, $item) {
+	return array_values(
+		array_filter($argv,
+			function ($v) use ($item) {
+				return substr($v, 0, strlen('--' . $item)) !== '--' . $item;
+			}
+		)
+	);
 }
+
 if (!isset($testEnv)) {
 	function show_help($argv) {
-		echo 'Usage: ' . $argv[0] . ' [-ho] [--config=FILENAME] [--cache[=FILENAME]] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr1-naming] [--psr2] [--indent_with_space] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
+		echo 'Usage: ' . $argv[0] . ' [-ho] [--config=FILENAME] [--cache[=FILENAME]] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr1-naming] [--psr2] [--indent_with_space=SIZE] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
 		$options = [
 			'--cache[=FILENAME]' => 'cache file. Default: ' . (Cache::DEFAULT_CACHE_FILENAME),
 			'--cakephp' => 'Apply CakePHP coding style',
@@ -5096,7 +5234,7 @@ if (!isset($testEnv)) {
 			'--constructor=type' => 'analyse classes for attributes and generate constructor - camel, snake, golang',
 			'--enable_auto_align' => 'disable auto align of ST_EQUAL and T_DOUBLE_ARROW',
 			'--ignore=PATTERN1,PATTERN2' => 'ignore file names whose names contain any PATTERN-N',
-			'--indent_with_space' => 'use spaces instead of tabs for indentation',
+			'--indent_with_space=SIZE' => 'use spaces instead of tabs for indentation. Default 4',
 			'--laravel' => 'Apply Laravel coding style',
 			'--list' => 'list possible transformations',
 			'--no-backup' => 'no backup file (original.php~)',
@@ -5123,7 +5261,7 @@ if (!isset($testEnv)) {
 		die();
 	}
 	$opts = getopt(
-		'ho:',
+		'iho:',
 		[
 			'cache::',
 			'cakephp',
@@ -5133,7 +5271,7 @@ if (!isset($testEnv)) {
 			'help',
 			'help-pass:',
 			'ignore:',
-			'indent_with_space',
+			'indent_with_space::',
 			'laravel',
 			'list',
 			'no-backup',
@@ -5151,13 +5289,7 @@ if (!isset($testEnv)) {
 		]
 	);
 	if (isset($opts['config'])) {
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--config')) !== '--config';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'config');
 		if (!file_exists($opts['config']) || !is_file($opts['config'])) {
 			fwrite(STDERR, 'Custom configuration not file found' . PHP_EOL);
 			exit(255);
@@ -5198,37 +5330,19 @@ if (!isset($testEnv)) {
 
 	$cache = null;
 	if (isset($opts['cache'])) {
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--cache')) !== '--cache';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'cache');
 		$cache = new Cache($opts['cache']);
 		fwrite(STDERR, 'Using cache ...' . PHP_EOL);
 	}
 	$backup = true;
 	if (isset($opts['no-backup'])) {
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--no-backup' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'no-backup');
 		$backup = false;
 	}
 
 	$ignore_list = null;
 	if (isset($opts['ignore'])) {
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--ignore')) !== '--ignore';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'ignore');
 		$ignore_list = array_map(function ($v) {
 			return trim($v);
 		}, explode(',', $opts['ignore']));
@@ -5244,45 +5358,21 @@ if (!isset($testEnv)) {
 				$fmt->addPass(new $optPass());
 			}
 		}
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--prepasses')) !== '--prepasses';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'prepasses');
 	}
 	$fmt->addPass(new TwoCommandsInSameLine());
 	$fmt->addPass(new RemoveIncludeParentheses());
 	$fmt->addPass(new NormalizeIsNotEquals());
 	if (isset($opts['setters_and_getters'])) {
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--setters_and_getters')) !== '--setters_and_getters';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'setters_and_getters');
 		$fmt->addPass(new SettersAndGettersPass($opts['setters_and_getters']));
 	}
 	if (isset($opts['constructor'])) {
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--constructor')) !== '--constructor';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'constructor');
 		$fmt->addPass(new ConstructorPass($opts['constructor']));
 	}
 	if (isset($opts['oracleDB'])) {
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--oracleDB')) !== '--oracleDB';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'oracleDB');
 		$fmt->addPass(new AutoImportPass($opts['oracleDB']));
 	}
 
@@ -5290,13 +5380,7 @@ if (!isset($testEnv)) {
 	$fmt->addPass(new AddMissingCurlyBraces());
 	if (isset($opts['smart_linebreak_after_curly'])) {
 		$fmt->addPass(new SmartLnAfterCurlyOpen());
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--smart_linebreak_after_curly' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'smart_linebreak_after_curly');
 	}
 	$fmt->addPass(new ExtraCommaInArray());
 	$fmt->addPass(new NormalizeLnAndLtrimLines());
@@ -5306,13 +5390,7 @@ if (!isset($testEnv)) {
 
 	if (isset($opts['yoda'])) {
 		$fmt->addPass(new YodaComparisons());
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--yoda' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'yoda');
 	}
 
 	$fmt->addPass(new ResizeSpaces());
@@ -5324,67 +5402,31 @@ if (!isset($testEnv)) {
 	if (isset($opts['enable_auto_align'])) {
 		$fmt->addPass(new AlignEquals());
 		$fmt->addPass(new AlignDoubleArrow());
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--enable_auto_align' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'enable_auto_align');
 	}
 
 	$fmt->addPass(new ReindentObjOps());
 	$fmt->addPass(new EliminateDuplicatedEmptyLines());
 
 	if (isset($opts['indent_with_space'])) {
-		$fmt->addPass(new PSR2IndentWithSpace());
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--indent_with_space' !== $v;
-				}
-			)
-		);
+		$fmt->addPass(new PSR2IndentWithSpace($opts['indent_with_space']));
+		$argv = extract_from_argv($argv, 'indent_with_space');
 	}
 	if (isset($opts['psr'])) {
 		PsrDecorator::decorate($fmt);
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--psr' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'psr');
 	}
 	if (isset($opts['psr1'])) {
 		PsrDecorator::PSR1($fmt);
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--psr1' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'psr1');
 	}
 	if (isset($opts['psr1-naming'])) {
 		PsrDecorator::PSR1_naming($fmt);
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--psr1-naming' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'psr1-naming');
 	}
 	if (isset($opts['psr2'])) {
 		PsrDecorator::PSR2($fmt);
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--psr2' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'psr2');
 	}
 	if ((isset($opts['psr1']) || isset($opts['psr2']) || isset($opts['psr'])) && isset($opts['enable_auto_align'])) {
 		$fmt->addPass(new PSR2AlignObjOp());
@@ -5392,13 +5434,7 @@ if (!isset($testEnv)) {
 
 	if (isset($opts['visibility_order'])) {
 		$fmt->addPass(new PSR2ModifierVisibilityStaticOrder());
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--visibility_order' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'visibility_order');
 	}
 	$fmt->addPass(new LeftAlignComment());
 	$fmt->addPass(new RTrim());
@@ -5412,38 +5448,37 @@ if (!isset($testEnv)) {
 				$fmt->addPass(new $optPass());
 			}
 		}
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return substr($v, 0, strlen('--passes')) !== '--passes';
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'passes');
 	}
 
 	if (isset($opts['laravel'])) {
 		$fmt->addPass(new LaravelStyle());
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--laravel' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'laravel');
 	}
 
 	if (isset($opts['cakephp'])) {
 		$fmt->addPass(new CakePHPStyle());
-		$argv = array_values(
-			array_filter($argv,
-				function ($v) {
-					return '--cakephp' !== $v;
-				}
-			)
-		);
+		$argv = extract_from_argv($argv, 'cakephp');
 	}
 
-	if (isset($opts['o'])) {
+	if (isset($opts['i'])) {
+		echo 'php.tools fmt.php interactive mode.', PHP_EOL;
+		echo 'no <?php is necessary', PHP_EOL;
+		echo 'type a lone "." to finish input.', PHP_EOL;
+		echo 'type "quit" to finish.', PHP_EOL;
+		while (true) {
+			$str = '';
+			do {
+				$line = readline('> ');
+				$str .= $line;
+			} while (!('.' == $line || 'quit' == $line));
+			if ('quit' == $line) {
+				exit(0);
+			}
+			readline_add_history(substr($str, 0, -1));
+			echo $fmt->formatCode('<?php ' . substr($str, 0, -1)), PHP_EOL;
+		}
+	} elseif (isset($opts['o'])) {
 		if (!is_file($argv[1])) {
 			fwrite(STDERR, "File not found: " . $argv[1] . PHP_EOL);
 			exit(255);
@@ -5464,6 +5499,10 @@ if (!isset($testEnv)) {
 		$file_count = 0;
 
 		$cache_hit_count = 0;
+		$workers = 2;
+		if ($concurrent) {
+			fwrite(STDERR, 'Starting ' . $workers . ' workers ...' . PHP_EOL);
+		}
 		for ($i = 1; $i < $argc; ++$i) {
 			if (!isset($argv[$i])) {
 				continue;
@@ -5479,6 +5518,57 @@ if (!isset($testEnv)) {
 				$dir = new RecursiveDirectoryIterator($target_dir);
 				$it = new RecursiveIteratorIterator($dir);
 				$files = new RegexIterator($it, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+
+				if ($concurrent) {
+
+					$chn = make_channel();
+					$chn_file_done = make_channel();
+					$chn_done = make_channel();
+					cofunc(function ($chn_file_done) {
+						$count = 0;
+						while (true) {
+							$chn_file_done->out();
+							++$count;
+							fwrite(STDERR, '.');
+							if ($count % 20 == 0) {
+								fwrite(STDERR, PHP_EOL);
+							}
+						}
+					}, $chn_file_done);
+					for ($i = 0; $i < $workers; ++$i) {
+						cofunc(function ($fmt, $backup, $cache, $chn, $chn_done, $chn_file_done) {
+							$cache_hit_count = 0;
+							$cache_miss_count = 0;
+							while (true) {
+								$msg = $chn->out();
+								if ('done' == $msg) {
+									break;
+								}
+								$target_dir = $msg['target_dir'];
+								$file = $msg['file'];
+								$chn_file_done->in(1);
+								if (null !== $cache) {
+									$content = $cache->is_changed($target_dir, $file);
+									if (!$content) {
+										++$cache_hit_count;
+										continue;
+									}
+								} else {
+									$content = file_get_contents($file);
+								}
+								++$cache_miss_count;
+								$fmtCode = $fmt->formatCode($content);
+								if (null !== $cache) {
+									$cache->upsert($target_dir, $file, $fmtCode);
+								}
+								file_put_contents($file . '-tmp', $fmtCode);
+								$backup && rename($file, $file . '~');
+								rename($file . '-tmp', $file);
+							}
+							$chn_done->in([$cache_hit_count, $cache_miss_count]);
+						}, $fmt, $backup, $cache, $chn, $chn_done, $chn_file_done);
+					}
+				}
 				foreach ($files as $file) {
 					$file = $file[0];
 					if (null !== $ignore_list) {
@@ -5490,25 +5580,43 @@ if (!isset($testEnv)) {
 					}
 
 					++$file_count;
-					if (null !== $cache) {
-						$content = $cache->is_changed($target_dir, $file);
-						if (!$content) {
-							++$cache_hit_count;
-							continue;
-						}
+					if ($concurrent) {
+						$chn->in([
+							'target_dir' => $target_dir,
+							'file' => $file,
+						]);
 					} else {
-						$content = file_get_contents($file);
+						if (0 == ($file_count % 20)) {
+							fwrite(STDERR, ' ' . $file_count . PHP_EOL);
+						}
+						if (null !== $cache) {
+							$content = $cache->is_changed($target_dir, $file);
+							if (!$content) {
+								++$file_count;
+								++$cache_hit_count;
+								continue;
+							}
+						} else {
+							$content = file_get_contents($file);
+						}
+						$fmtCode = $fmt->formatCode($content);
+						fwrite(STDERR, '.');
+						if (null !== $cache) {
+							$cache->upsert($target_dir, $file, $fmtCode);
+						}
+						file_put_contents($file . '-tmp', $fmtCode);
+						$backup && rename($file, $file . '~');
+						rename($file . '-tmp', $file);
 					}
-					$fmtCode = $fmt->formatCode($content);
-					fwrite(STDERR, '.');
-					if (null !== $cache) {
-						$cache->upsert($target_dir, $file, $fmtCode);
+
+				}
+				if ($concurrent) {
+					for ($i = 0; $i < $workers; ++$i) {
+						$chn->in('done');
 					}
-					file_put_contents($file . '-tmp', $fmtCode);
-					$backup && rename($file, $file . '~');
-					rename($file . '-tmp', $file);
-					if (0 == ($file_count % 20)) {
-						fwrite(STDERR, ' ' . $file_count . PHP_EOL);
+					for ($i = 0; $i < $workers; ++$i) {
+						list($cache_hit, $cache_miss) = $chn_done->out();
+						$cache_hit_count += $cache_hit;
 					}
 				}
 				continue;
