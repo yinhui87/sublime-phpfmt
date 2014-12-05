@@ -5143,7 +5143,10 @@ EOT;
 }
 ;
 
-
+$enable_cache = false;
+if (class_exists('SQLite3')) {
+	$enable_cache = true;
+	
 class Cache {
 	const DEFAULT_CACHE_FILENAME = '.php.tools.cache';
 
@@ -5159,6 +5162,7 @@ class Cache {
 		}
 
 		$this->set_db(new SQLite3($filename));
+		$this->db->busyTimeout(1000);
 		if ($start_db_creation) {
 			$this->create_db();
 		}
@@ -5198,6 +5202,7 @@ class Cache {
 	}
 }
 ;
+}
 final class CodeFormatter {
 	private $passes = [];
 	public function addPass(FormatterPass $pass) {
@@ -5229,8 +5234,8 @@ function extract_from_argv($argv, $item) {
 }
 
 if (!isset($testEnv)) {
-	function show_help($argv) {
-		echo 'Usage: ' . $argv[0] . ' [-ho] [--config=FILENAME] [--cache[=FILENAME]] [--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr1-naming] [--psr2] [--indent_with_space=SIZE] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
+	function show_help($argv, $enable_cache) {
+		echo 'Usage: ' . $argv[0] . ' [-ho] [--config=FILENAME] ' . ($enable_cache ? '[--cache[=FILENAME]] ' : '') . '[--setters_and_getters=type] [--constructor=type] [--psr] [--psr1] [--psr1-naming] [--psr2] [--indent_with_space=SIZE] [--enable_auto_align] [--visibility_order] <target>', PHP_EOL;
 		$options = [
 			'--cache[=FILENAME]' => 'cache file. Default: ' . (Cache::DEFAULT_CACHE_FILENAME),
 			'--cakephp' => 'Apply CakePHP coding style',
@@ -5255,6 +5260,9 @@ if (!isset($testEnv)) {
 			'-h, --help' => 'this help message',
 			'-o=file' => 'output the formatted code to "file"',
 		];
+		if (!$enable_cache) {
+			unset($options['--cache[=FILENAME]']);
+		}
 		$maxLen = max(array_map(function ($v) {
 			return strlen($v);
 		}, array_keys($options)));
@@ -5264,33 +5272,37 @@ if (!isset($testEnv)) {
 		echo PHP_EOL, 'If - is blank, it reads from stdin', PHP_EOL;
 		die();
 	}
+	$getopt_long_options = [
+		'cache::',
+		'cakephp',
+		'config:',
+		'constructor:',
+		'enable_auto_align',
+		'help',
+		'help-pass:',
+		'ignore:',
+		'indent_with_space::',
+		'laravel',
+		'list',
+		'no-backup',
+		'oracleDB::',
+		'passes:',
+		'prepasses:',
+		'psr',
+		'psr1',
+		'psr1-naming',
+		'psr2',
+		'setters_and_getters:',
+		'smart_linebreak_after_curly',
+		'visibility_order',
+		'yoda',
+	];
+	if (!$enable_cache) {
+		unset($getopt_long_options['cache::']);
+	}
 	$opts = getopt(
 		'iho:',
-		[
-			'cache::',
-			'cakephp',
-			'config:',
-			'constructor:',
-			'enable_auto_align',
-			'help',
-			'help-pass:',
-			'ignore:',
-			'indent_with_space::',
-			'laravel',
-			'list',
-			'no-backup',
-			'oracleDB::',
-			'passes:',
-			'prepasses:',
-			'psr',
-			'psr1',
-			'psr1-naming',
-			'psr2',
-			'setters_and_getters:',
-			'smart_linebreak_after_curly',
-			'visibility_order',
-			'yoda',
-		]
+		$getopt_long_options
 	);
 	if (isset($opts['config'])) {
 		$argv = extract_from_argv($argv, 'config');
@@ -5308,7 +5320,7 @@ if (!isset($testEnv)) {
 
 	}
 	if (isset($opts['h']) || isset($opts['help'])) {
-		show_help($argv);
+		show_help($argv, $enable_cache);
 	}
 
 	if (isset($opts['help-pass'])) {
@@ -5333,7 +5345,7 @@ if (!isset($testEnv)) {
 	}
 
 	$cache = null;
-	if (isset($opts['cache'])) {
+	if ($enable_cache && isset($opts['cache'])) {
 		$argv = extract_from_argv($argv, 'cache');
 		$cache = new Cache($opts['cache']);
 		fwrite(STDERR, 'Using cache ...' . PHP_EOL);
@@ -5643,7 +5655,7 @@ if (!isset($testEnv)) {
 			exit(255);
 		}
 	} else {
-		show_help($argv);
+		show_help($argv, $enable_cache);
 	}
 	exit(0);
 }
