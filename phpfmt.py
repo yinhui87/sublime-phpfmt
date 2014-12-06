@@ -66,10 +66,10 @@ def dofmt(eself, eview, sgter = None):
         if int(sublime.version()) >= 3000:
             sublime.error_message("Can't find PHP binary file at "+php_bin)
 
-    # Look for oracle.serialize
+    # Look for oracle.sqlite
     oracleDirNm = dirnm
     while oracleDirNm != "/":
-        oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+        oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
         if os.path.isfile(oracleFname):
             break
         origOracleDirNm = oracleDirNm
@@ -554,7 +554,7 @@ def lookForOracleFile(view):
         originalDirNm = oracleDirNm
 
         while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
             if os.path.isfile(oracleFname):
                 return True
             origOracleDirNm = oracleDirNm
@@ -606,7 +606,7 @@ class AnalyseThisCommand(sublime_plugin.TextCommand):
 
         oracleDirNm = dirNm
         while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
             if os.path.isfile(oracleFname):
                 break
             origOracleDirNm = oracleDirNm
@@ -663,7 +663,7 @@ class CalltipCommand(sublime_plugin.TextCommand):
 
         oracleDirNm = dirNm
         while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
             if os.path.isfile(oracleFname):
                 break
             origOracleDirNm = oracleDirNm
@@ -871,7 +871,7 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
         originalDirNm = oracleDirNm
 
         while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
             if os.path.isfile(oracleFname):
                 break
             origOracleDirNm = oracleDirNm
@@ -921,7 +921,7 @@ class PHPFmtComplete(sublime_plugin.EventListener):
 
         oracleDirNm = dirNm
         while oracleDirNm != "/":
-            oracleFname = oracleDirNm+os.path.sep+"oracle.serialize"
+            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
             if os.path.isfile(oracleFname):
                 break
             origOracleDirNm = oracleDirNm
