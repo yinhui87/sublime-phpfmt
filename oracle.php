@@ -14,7 +14,7 @@ class ClassParser extends Parser {
 							continue;
 						}
 						$namespace .= $text;
-					} while ($id != ';');
+					} while (';' != $id);
 					break 2;
 			}
 		}
@@ -60,20 +60,20 @@ class ClassParser extends Parser {
 					$parsed_classes[$namespace . $class_name][] = [
 						'filename' => $this->filename,
 						'extends' => $extends,
-						'implements' => $implements
+						'implements' => $implements,
 					];
 					if (!empty($extends)) {
 						$parsed_extended_classes[$extends] = [
 							'filename' => $this->filename,
 							'extended_by' => $class_name,
-							'implements' => $implements
+							'implements' => $implements,
 						];
 					}
 					if (!empty($implements)) {
 						$parsed_implemented_classes[$implements] = [
 							'filename' => $this->filename,
 							'implemented_by' => $class_name,
-							'extends' => $extends
+							'extends' => $extends,
 						];
 					}
 					break;
@@ -101,7 +101,7 @@ class ClassMethodParser extends Parser {
 							continue;
 						}
 						$namespace .= $text;
-					} while ($id != ';');
+					} while (';' != $id);
 					break 2;
 			}
 		}
@@ -124,7 +124,7 @@ class ClassMethodParser extends Parser {
 						$functionName = $text;
 					}
 
-					if ($functionName == "__construct") {
+					if ("__construct" == $functionName) {
 						$functionName = $className;
 						$functionCall = $className;
 						$functionSignature = $className;
@@ -142,7 +142,7 @@ class ClassMethodParser extends Parser {
 							$functionCall .= $text;
 						}
 						$functionSignature .= $text;
-					} while ($id != ')');
+					} while (')' != $id);
 					$methodList[] = [
 						$functionName,
 						str_replace('( ', '(', $functionCall),
@@ -173,16 +173,16 @@ class ClassMethodParser extends Parser {
 					$className = $text;
 					do {
 						list($id, $text) = $this->walk_next_token();
-					} while ($id != '{');
+					} while ('{' != $id);
 					$classBody = [$text];
 					$curlyLevel = 1;
 					do {
 						list($id, $text) = $this->walk_next_token();
-						if ($id == '{') {
-							$curlyLevel++;
+						if ('{' == $id) {
+							++$curlyLevel;
 						}
-						if ($id == '}') {
-							$curlyLevel--;
+						if ('}' == $id) {
+							--$curlyLevel;
 						}
 						$classBody[] = [$id, $text];
 					} while ($curlyLevel > 0);
@@ -213,7 +213,7 @@ abstract class Parser {
 	abstract public function parse($source);
 	protected function get_token($token) {
 		if (is_string($token)) {
-			return array($token, $token);
+			return [$token, $token];
 		} else {
 			return $token;
 		}
@@ -227,12 +227,12 @@ abstract class Parser {
 	}
 	protected function get_crlf_indent($in_for = false, $increment = 0) {
 		if ($in_for) {
-			$this->for_idx++;
+			++$this->for_idx;
 			if ($this->for_idx > 2) {
 				$this->for_idx = 0;
 			}
 		}
-		if ($this->for_idx === 0 || !$in_for) {
+		if (0 === $this->for_idx || !$in_for) {
 			return $this->get_crlf() . $this->get_indent($increment);
 		} else {
 			return $this->get_space(false);
@@ -260,20 +260,20 @@ abstract class Parser {
 		return $this->get_token($this->tkns[$this->ptr + $delta]);
 	}
 	protected function is_token($token, $prev = false, $i = 99999, $idx = false) {
-		if ($i === 99999) {
+		if (99999 === $i) {
 			$i = $this->ptr;
 		}
 		if ($prev) {
-			while (--$i >= 0 && is_array($this->tkns[$i]) && $this->tkns[$i][0] === T_WHITESPACE);
+			while (--$i >= 0 && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
 		} else {
-			while (++$i < sizeof($this->tkns) - 1 && is_array($this->tkns[$i]) && $this->tkns[$i][0] === T_WHITESPACE);
+			while (++$i < sizeof($this->tkns) - 1 && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
 		}
 		if (isset($this->tkns[$i]) && is_string($this->tkns[$i]) && $this->tkns[$i] === $token) {
 			return $idx ? $i : true;
 		} elseif (is_array($token) && isset($this->tkns[$i]) && is_array($this->tkns[$i])) {
 			if (in_array($this->tkns[$i][0], $token)) {
 				return $idx ? $i : true;
-			} elseif ($prev && $this->tkns[$i][0] === T_OPEN_TAG) {
+			} elseif ($prev && T_OPEN_TAG === $this->tkns[$i][0]) {
 				return $idx ? $i : true;
 			}
 		}
@@ -281,26 +281,26 @@ abstract class Parser {
 	}
 	protected function prev_token() {
 		$i = $this->ptr;
-		while (--$i >= 0 && is_array($this->tkns[$i]) && $this->tkns[$i][0] === T_WHITESPACE);
+		while (--$i >= 0 && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
 		return $this->tkns[$i];
 	}
 	protected function walk_next_token() {
 		$i = $this->ptr;
 		$sizeof_tokens = sizeof($this->tkns);
-		while (++$i <= $sizeof_tokens && is_array($this->tkns[$i]) && $this->tkns[$i][0] === T_WHITESPACE);
+		while (++$i <= $sizeof_tokens && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
 		$this->ptr = $i;
 		if (!isset($this->tkns[$i])) {
-			return null;
+			return;
 		}
 		return $this->get_token($this->tkns[$i]);
 	}
 	protected function walk_next_token_ref(&$tokens, &$ptr) {
 		$i = $ptr;
 		$sizeof_tokens = sizeof($tokens);
-		while (++$i <= $sizeof_tokens && is_array($tokens[$i]) && $tokens[$i][0] === T_WHITESPACE);
+		while (++$i <= $sizeof_tokens && is_array($tokens[$i]) && T_WHITESPACE === $tokens[$i][0]);
 		$ptr = $i;
 		if (!isset($tokens[$i])) {
-			return null;
+			return;
 		}
 		return $this->get_token($tokens[$i]);
 	}
@@ -323,10 +323,10 @@ abstract class Parser {
 	protected function substr_count_trailing($haystack, $needle) {
 		$cnt = 0;
 		$i = strlen($haystack) - 1;
-		for ($i = $i; $i >= 0; $i--) {
+		for ($i = $i; $i >= 0; --$i) {
 			$char = substr($haystack, $i, 1);
 			if ($needle === $char) {
-				$cnt++;
+				++$cnt;
 			} elseif (' ' !== $char && "\t" !== $char) {
 				break;
 			}
@@ -347,8 +347,44 @@ $ignoreListFn = 'oracle.ignore';
 if (file_exists($ignoreListFn)) {
 	$ignoreList = file($ignoreListFn);
 }
-$fnDb = 'oracle.serialize';
+$fnDb = 'oracle.sqlite';
 if (!file_exists($fnDb) || 'flush' == $cmd) {
+	file_exists($fnDb) && unlink($fnDb);
+	$db = new SQLite3($fnDb);
+	$db->exec(
+		'CREATE TABLE classes (
+			filename text,
+			class text,
+			extends text,
+			implements text
+		);'
+	);
+	$db->exec(
+		'CREATE TABLE extends (
+			filename text,
+			extends text,
+			extended_by text,
+			implements text
+		);'
+	);
+	$db->exec(
+		'CREATE TABLE implements (
+			filename text,
+			implements text,
+			implemented_by text,
+			extends text
+		);'
+	);
+	$db->exec(
+		'CREATE TABLE methods (
+			filename text,
+			class text,
+			method_name text,
+			method_call text,
+			method_signature text
+		);'
+	);
+
 	fwrite(STDERR, "Database not found... generating" . PHP_EOL);
 	$debug = false;
 	$uri = $argv[2];
@@ -377,65 +413,120 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 
 		list($class, $extends, $implements) = (new ClassParser($file, $debug))->parse($content);
 		$methods = (new ClassMethodParser($file, $debug))->parse($content);
-		$all_classes = array_merge_recursive($all_classes, $class);
-		$all_extends = array_merge_recursive($all_extends, $extends);
-		$all_implements = array_merge_recursive($all_implements, $implements);
-		$all_methods = array_merge_recursive($all_methods, $methods);
-	}
-	fwrite(STDERR, "Serializing and storing..." . PHP_EOL);
-	file_put_contents(
-		$fnDb, serialize([
-			'all_classes' => $all_classes,
-			'all_extends' => $all_extends,
-			'all_implements' => $all_implements,
-			'all_methods' => $all_methods,
-		])
-	);
-} else {
-	if (time() - filemtime($fnDb) > 86400) {
-		fwrite(STDERR, "Warning: database file older than a day" . PHP_EOL);
-	}
 
-	$db = unserialize(file_get_contents($fnDb));
+		foreach ($class as $class_name => $class_data) {
+			foreach ($class_data as $data) {
+				$db->exec('
+				INSERT INTO
+					classes
+				VALUES
+					(
+						"' . SQLite3::escapeString($file) . '",
+						"' . SQLite3::escapeString($class_name) . '",
+						"' . SQLite3::escapeString($data['extends']) . '",
+						"' . SQLite3::escapeString($data['implements']) . '"
+					);
+				');
+			}
+		}
 
-	$all_classes = $db['all_classes'];
-	$all_extends = $db['all_extends'];
-	$all_implements = $db['all_implements'];
-	$all_methods = $db['all_methods'];
+		foreach ($extends as $extends_name => $data) {
+			$db->exec('
+				INSERT INTO
+					extends
+				VALUES
+					(
+						"' . SQLite3::escapeString($file) . '",
+						"' . SQLite3::escapeString($extends_name) . '",
+						"' . SQLite3::escapeString($data['extended_by']) . '",
+						"' . SQLite3::escapeString($data['implements']) . '"
+					);
+			');
+		}
+
+		foreach ($implements as $implements_name => $data) {
+			$db->exec('
+				INSERT INTO
+					implements
+				VALUES
+					(
+						"' . SQLite3::escapeString($file) . '",
+						"' . SQLite3::escapeString($implements_name) . '",
+						"' . SQLite3::escapeString($data['implemented_by']) . '",
+						"' . SQLite3::escapeString($data['extends']) . '"
+					);
+			');
+		}
+
+		foreach ($methods as $class => $class_methods) {
+			foreach ($class_methods as $data) {
+				$db->exec("
+				INSERT INTO
+					methods
+				VALUES
+					(
+						'" . SQLite3::escapeString($file) . "',
+						'" . SQLite3::escapeString($class) . "',
+						'" . SQLite3::escapeString($data[0]) . "',
+						'" . SQLite3::escapeString($data[1]) . "',
+						'" . SQLite3::escapeString($data[2]) . "'
+					);
+				");
+			}
+		}
+	}
+	$db->close();
+	exit(0);
+}
+if (time() - filemtime($fnDb) > 86400) {
+	fwrite(STDERR, "Warning: database file older than a day" . PHP_EOL);
 }
 
+$db = new SQLite3($fnDb);
+
 function introspectInterface(&$found_implements) {
-	if (is_array($found_implements['implemented_by'])) {
-		foreach ($found_implements['implemented_by'] as $idx => $class_name) {
-			echo "\t", $class_name, " - ", $found_implements["filename"][$idx], PHP_EOL;
-		}
-	} else {
-		echo "\t", $found_implements['implemented_by'], ' - ', $found_implements["filename"], PHP_EOL;
+	foreach ($found_implements as $row) {
+		echo "\t", $row['implemented_by'], " - ", $row["filename"], PHP_EOL;
 	}
 	echo PHP_EOL;
 }
 if ("implements" == $cmd) {
-	if (!isset($all_implements[$argv[2]])) {
+	$results = $db->query("SELECT * FROM implements WHERE implements = '" . SQLite3::escapeString($argv[2]) . "'");
+	$found_implements = [];
+	while ($row = $results->fetchArray()) {
+		$found_implements[] = [
+			'filename' => $row['filename'],
+			'implemented_by' => $row['implemented_by'],
+		];
+	}
+	if (empty($found_implements)) {
 		fwrite(STDERR, "Interface not found: " . $argv[2] . PHP_EOL);
 		exit(255);
 	}
 	echo $argv[2] . ' implemented by' . PHP_EOL;
-	$found_implements = &$all_implements[$argv[2]];
 	introspectInterface($found_implements);
 }
 
 function introspectExtends(&$found_extends) {
-	foreach ($found_extends['extended_by'] as $idx => $class_name) {
-		echo "\t", $class_name, " - ", $found_extends["filename"][$idx], PHP_EOL;
+	foreach ($found_extends as $row) {
+		echo "\t", $row['extended_by'], " - ", $row["filename"], PHP_EOL;
 	}
 	echo PHP_EOL;
 }
 if ("extends" == $cmd) {
-	if (!isset($all_extends[$argv[2]])) {
+	$results = $db->query("SELECT * FROM extends WHERE extends = '" . SQLite3::escapeString($argv[2]) . "'");
+	$found_extends = [];
+	while ($row = $results->fetchArray()) {
+		$found_extends[] = [
+			'filename' => $row['filename'],
+			'extended_by' => $row['extended_by'],
+		];
+	}
+	if (empty($found_extends)) {
 		fwrite(STDERR, "Class not found: " . $argv[2] . PHP_EOL);
 		exit(255);
 	}
-	$found_extends = &$all_extends[$argv[2]];
+
 	echo $argv[2] . ' extended by' . PHP_EOL;
 	introspectExtends($found_extends);
 }
@@ -452,49 +543,74 @@ function introspectClass(&$found_classes) {
 	echo PHP_EOL;
 }
 if ("class" == $cmd) {
-	if (!isset($argv[2]) || !isset($all_classes[$argv[2]])) {
-		isset($argv[2]) && fwrite(STDERR, "Class not found: " . $argv[2] . PHP_EOL);
-		fwrite(STDERR, 'Classes available:' . PHP_EOL . implode(PHP_EOL, array_keys($all_classes)) . PHP_EOL);
+	$results = $db->query("SELECT * FROM classes WHERE class LIKE '%" . SQLite3::escapeString($argv[2]) . "'");
+	$found_classes = [];
+	while ($row = $results->fetchArray()) {
+		$found_classes = [
+			'filename' => $row['filename'],
+			'class' => $row['class'],
+			'extends' => $row['extends'],
+			'implements' => $row['implements'],
+		];
+		break;
+	}
+
+	if (empty($found_classes)) {
+		fwrite(STDERR, "Class not found: " . $argv[2] . PHP_EOL);
 		exit(255);
 	}
-	$found_classes = &$all_classes[$argv[2]][0];
+
 	echo $argv[2], PHP_EOL;
 	introspectClass($found_classes);
 }
 
 if ("introspect" == $cmd) {
 	$target = $argv[2];
-	$strlenTarget = strlen($target);
-	foreach ($all_implements as $k => $v) {
-		if (substr($k, -$strlenTarget) == $target) {
-			echo $k . ' implemented by' . PHP_EOL;
-			$found_implements = &$all_implements[$k];
-			introspectInterface($found_implements);
-		}
+
+	$results = $db->query("SELECT * FROM implements WHERE implements = '%" . SQLite3::escapeString($target) . "'");
+	$all_found_implements = [];
+	while ($row = $results->fetchArray()) {
+		$all_found_implements[$row['implements']][] = [
+			'filename' => $row['filename'],
+			'implemented_by' => $row['implemented_by'],
+		];
 	}
-	foreach ($all_extends as $k => $v) {
-		if (substr($k, -$strlenTarget) == $target) {
-			$found_extends = &$all_extends[$k];
-			echo $k . ' extended by' . PHP_EOL;
-			introspectExtends($found_extends);
-		}
+	foreach ($all_found_implements as $implements => $found_implements) {
+		echo $implements . ' implemented by' . PHP_EOL;
+		introspectInterface($found_implements);
 	}
-	foreach ($all_classes as $k => $v) {
-		if (substr($k, -$strlenTarget) == $target) {
-			$found_classes = &$all_classes[$k][0];
-			echo "class " . $k, PHP_EOL;
-			introspectClass($found_classes);
-		}
+
+	$results = $db->query("SELECT * FROM extends WHERE extends = '%" . SQLite3::escapeString($target) . "'");
+	$all_found_extends = [];
+	while ($row = $results->fetchArray()) {
+		$all_found_extends[$row['extends']][] = [
+			'filename' => $row['filename'],
+			'extended_by' => $row['extended_by'],
+		];
 	}
+	foreach ($all_found_extends as $extends => $found_extends) {
+		echo $extends . ' extended by' . PHP_EOL;
+		introspectExtends($found_extends);
+	}
+
+	$results = $db->query("SELECT * FROM classes WHERE class LIKE '%" . SQLite3::escapeString($target) . "'");
+	while ($row = $results->fetchArray()) {
+		$found_classes = [[
+			'filename' => $row['filename'],
+			'class' => $row['class'],
+			'extends' => $row['extends'],
+			'implements' => $row['implements'],
+		]];
+		echo "class " . $row['class'], PHP_EOL;
+		introspectClass($found_classes);
+	}
+
 	ob_start();
 	$foundMethod = false;
-	foreach ($all_methods as $class => $methods) {
-		foreach ($methods as $method) {
-			if (substr($method[0], 0, strlen($target)) == $target) {
-				$foundMethod = true;
-				echo ' - ' . $class . '::' . $method[2], PHP_EOL;
-			}
-		}
+	$results = $db->query("SELECT * FROM methods WHERE method_name LIKE '%" . SQLite3::escapeString($target) . "'");
+	while ($row = $results->fetchArray()) {
+		$foundMethod = true;
+		echo ' - ' . $row['class'] . '::' . $row['method_signature'], PHP_EOL;
 	}
 	$methodOutput = ob_get_clean();
 	if ($foundMethod) {
@@ -503,18 +619,13 @@ if ("introspect" == $cmd) {
 }
 
 if ("calltip" == $cmd) {
-	$target = $argv[2];
-	$strlenTarget = strlen($target);
 	ob_start();
 	$foundMethod = false;
-	foreach ($all_methods as $class => $methods) {
-		foreach ($methods as $method) {
-			if (substr($method[0], 0, strlen($target)) == $target) {
-				$foundMethod = true;
-				echo $class . '::' . $method[2], PHP_EOL;
-				break 2;
-			}
-		}
+	$results = $db->query("SELECT * FROM methods WHERE method_name LIKE '%" . SQLite3::escapeString($argv[2]) . "'");
+	while ($row = $results->fetchArray()) {
+		$foundMethod = true;
+		echo $row['class'] . '::' . $row['method_signature'], PHP_EOL;
+		break;
 	}
 	$methodOutput = ob_get_clean();
 	if ($foundMethod) {
@@ -524,35 +635,21 @@ if ("calltip" == $cmd) {
 
 if ("autocomplete" == $cmd) {
 	$searchFor = $argv[2];
-	$searchForLen = strlen($argv[2]);
 
 	echo "term,match,class,type\n";
 
-	$words = array_map(function ($v) {
-		if (substr($v, 0, 1) == '\\') {
-			$v = substr($v, 1);
-		}
-		return $v;
-	}, array_keys($all_classes));
-	sort($words);
-	$words = array_unique(
-		array_filter($words, function ($v) use ($searchFor) {
-			return false !== stripos($v, $searchFor);
-		})+
-		array_filter($words, function ($v) use ($searchFor, $searchForLen) {
-			return substr($v, 0, $searchForLen) == $searchFor;
-		})
-	);
-	array_walk($words, function ($v) {
-		$tmp = explode('\\', $v);
-		fputcsv(STDOUT, [$v, array_pop($tmp), $v, 'class'], ',', '"');
-	});
-
-	foreach ($all_methods as $class => $methods) {
-		foreach ($methods as $method) {
-			if (false !== stripos($method[0], $searchFor) || substr($method[0], 0, $searchForLen) == $searchFor) {
-				fputcsv(STDOUT, [$method[1], $method[2], $class, 'method'], ',', '"');
-			}
-		}
+	$results = $db->query("SELECT * FROM classes WHERE class LIKE '%" . SQLite3::escapeString($searchFor) . "%' ORDER BY class");
+	while ($row = $results->fetchArray()) {
+		$tmp = explode('\\', $row['class']);
+		fputcsv(STDOUT, [$row['class'], array_pop($tmp), $row['class'], 'class'], ',', '"');
+	}
+	$results = $db->query("SELECT * FROM classes WHERE class LIKE '%" . SQLite3::escapeString($searchFor) . "' ORDER BY class");
+	while ($row = $results->fetchArray()) {
+		$tmp = explode('\\', $row['class']);
+		fputcsv(STDOUT, [$row['class'], array_pop($tmp), $row['class'], 'class'], ',', '"');
+	}
+	$results = $db->query("SELECT * FROM methods WHERE method_name LIKE '%" . SQLite3::escapeString($searchFor) . "%'");
+	while ($row = $results->fetchArray()) {
+		fputcsv(STDOUT, [$row['method_call'], $row['method_signature'], $row['class'], 'method'], ',', '"');
 	}
 }
