@@ -700,6 +700,7 @@ class CalltipCommand(sublime_plugin.TextCommand):
 
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
+        sublime.active_window().active_view().run_command("save")
         dofmt(self, self.view)
 
 class ToggleCommand(sublime_plugin.TextCommand):
