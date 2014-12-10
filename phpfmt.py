@@ -98,7 +98,7 @@ def dofmt(eself, eview, sgter = None):
         print("phpfmt (php version) out:\n", res.decode('utf-8'))
         print("phpfmt (php version) err:\n", err.decode('utf-8'))
 
-    cmd_lint = [php_bin,"-l",uri];
+    cmd_lint = [php_bin,"-ddisplay_errors=1","-l",uri];
     if os.name == 'nt':
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
