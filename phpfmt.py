@@ -222,6 +222,7 @@ def dofmt(eself, eview, sgter = None):
         time.sleep(1)
         sublime.active_window().active_view().run_command("phpfmt_vet")
     else:
+        sublime.status_message("phpfmt: format failed - syntax errors found")
         if debug:
             print("lint error: ", lint_out)
 
