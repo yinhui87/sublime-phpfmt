@@ -87,6 +87,16 @@ def dofmt(eself, eview, sgter = None):
 
     if debug:
         print("phpfmt:", uri)
+        cmd_ver = [php_bin,"-v"];
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+        res, err = p.communicate()
+        print("phpfmt (php version) out:\n", res.decode('utf-8'))
+        print("phpfmt (php version) err:\n", err.decode('utf-8'))
 
     cmd_lint = [php_bin,"-l",uri];
     if os.name == 'nt':
