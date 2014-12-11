@@ -22,6 +22,7 @@
     {"caption": "phpfmt: toggle PSR2", "command": "toggle", "args": {"option":"psr2"}},
     {"caption": "phpfmt: toggle removal of empty returns ('return null;')", "command": "toggle", "args": {"option":"remove_return_empty"}},
     {"caption": "phpfmt: toggle replace join() with implode()", "command": "toggle", "args": {"option":"join_to_implode"}},
+    {"caption": "phpfmt: toggle save before 'format now'", "command": "toggle", "args": {"option":"save_before_format_now"}},
     {"caption": "phpfmt: toggle smart linebreak after open curly", "command": "toggle", "args": {"option":"smart_linebreak_after_curly"}},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle", "args": {"option":"visibility_order"}},
     {"caption": "phpfmt: toggle yoda mode", "command": "toggle", "args": {"option":"yoda"}},

@@ -701,7 +701,11 @@ class CalltipCommand(sublime_plugin.TextCommand):
 
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        sublime.active_window().active_view().run_command("save")
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        save_before_format_now = s.get('save_before_format_now', False)
+        if save_before_format_now:
+            sublime.active_window().active_view().run_command("save")
+
         dofmt(self, self.view)
 
 class ToggleCommand(sublime_plugin.TextCommand):
@@ -727,6 +731,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "psr2":"PSR2",
             "remove_leading_slash":"remove_leading_slash",
             "remove_return_empty":"remove empty returns",
+            "save_before_format_now":"save before 'format now'",
             "short_array":"short array",
             "smart_linebreak_after_curly":"smart linebreak after curly",
             "vet":"vet",
