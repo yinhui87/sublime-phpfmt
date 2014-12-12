@@ -271,7 +271,9 @@ abstract class FormatterPass {
 		return $direction . "\x2" . implode('', $ignore_list) . "\x2" . (is_array($token) ? implode("\x2", $token) : $token);
 	}
 
+	abstract public function candidate($source, $found_tokens);
 	abstract public function format($source);
+
 	protected function get_token($token) {
 		if (isset($token[1])) {
 			return $token;
@@ -659,14 +661,33 @@ final class CodeFormatter {
 			},
 			$this->passes
 		);
+		$found_tokens = [];
+		$tkns = token_get_all($source);
+		foreach ($tkns as $token) {
+			list($id, $text) = $this->get_token($token);
+			$found_tokens[$id] = $id;
+		}
 		while (($pass = array_pop($passes))) {
-			$source = $pass->format($source);
+			if ($pass->candidate($source, $found_tokens)) {
+				$source = $pass->format($source);
+			}
 		}
 		return $source;
+	}
+
+	protected function get_token($token) {
+		if (isset($token[1])) {
+			return $token;
+		} else {
+			return [$token, $token];
+		}
 	}
 };
 
 final class AddMissingCurlyBraces extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		list($tmp, $changed) = $this->addBraces($source);
 		while ($changed) {
@@ -854,6 +875,10 @@ final class AutoImportPass extends FormatterPass {
 
 	public function __construct($oracleFn) {
 		$this->oracle = new SQLite3($oracleFn);
+	}
+
+	public function candidate($source, $found_tokens) {
+		return true;
 	}
 
 	private function used_alias_list($source) {
@@ -1104,6 +1129,7 @@ final class ConstructorPass extends FormatterPass {
 	const TYPE_CAMEL_CASE = 'camel';
 	const TYPE_SNAKE_CASE = 'snake';
 	const TYPE_GOLANG = 'golang';
+
 	public function __construct($type = self::TYPE_CAMEL_CASE) {
 		if (self::TYPE_CAMEL_CASE == $type || self::TYPE_SNAKE_CASE == $type || self::TYPE_GOLANG == $type) {
 			$this->type = $type;
@@ -1112,10 +1138,16 @@ final class ConstructorPass extends FormatterPass {
 		}
 	}
 
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_CLASS])) {
+			return true;
+		}
+		return false;
+	}
+
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -1215,6 +1247,10 @@ final class ConstructorPass extends FormatterPass {
 final class EliminateDuplicatedEmptyLines extends FormatterPass {
 	const EMPTY_LINE = "\x2 EMPTYLINE \x3";
 
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
+
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -1265,18 +1301,17 @@ final class EliminateDuplicatedEmptyLines extends FormatterPass {
 	}
 };
 class EncapsulateNamespaces extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_NAMESPACE])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
 		$in_namespace_context = false;
-		while (list($index, $token) = each($this->tkns)) {
-			list($id, $text) = $this->get_token($token);
-			$this->ptr = $index;
-			if (T_CLOSE_TAG == $id) {
-				return $source;
-			}
-		}
-		reset($this->tkns);
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -1290,7 +1325,10 @@ class EncapsulateNamespaces extends AdditionalPass {
 					} elseif (ST_SEMI_COLON == $found_id) {
 						$in_namespace_context = true;
 						$this->append_code(ST_CURLY_OPEN);
-						$this->print_and_stop_at(T_NAMESPACE);
+						list($found_id, $found_text) = $this->print_and_stop_at([T_NAMESPACE, T_CLOSE_TAG]);
+						if (T_CLOSE_TAG == $found_id) {
+							return $source;
+						}
 						$this->append_code($this->get_crlf() . ST_CURLY_CLOSE . $this->get_crlf());
 						prev($this->tkns);
 						continue;
@@ -1335,6 +1373,11 @@ EOT;
 final class ExtraCommaInArray extends FormatterPass {
 	const ST_SHORT_ARRAY_OPEN = 'SHORT_ARRAY_OPEN';
 	const EMPTY_ARRAY = 'ST_EMPTY_ARRAY';
+
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
+
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 
@@ -1400,6 +1443,9 @@ final class ExtraCommaInArray extends FormatterPass {
 };
 final class LeftAlignComment extends FormatterPass {
 	const NON_INDENTABLE_COMMENT = "/*\x2 COMMENT \x3*/";
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -1461,6 +1507,13 @@ final class LeftAlignComment extends FormatterPass {
 }
 ;
 final class MergeCurlyCloseAndDoWhile extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_WHILE])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -1498,6 +1551,13 @@ final class MergeCurlyCloseAndDoWhile extends FormatterPass {
 }
 ;
 final class MergeDoubleArrowAndArray extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_ARRAY])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -1521,9 +1581,18 @@ final class MergeDoubleArrowAndArray extends FormatterPass {
 	}
 };
 final class MergeParenCloseWithCurlyOpen extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[ST_CURLY_OPEN]) || isset($found_tokens[T_ELSE]) || isset($found_tokens[T_ELSEIF])) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
+
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -1553,9 +1622,17 @@ final class MergeParenCloseWithCurlyOpen extends FormatterPass {
 }
 ;
 final class NormalizeIsNotEquals extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_IS_NOT_EQUAL])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
+
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -1574,6 +1651,9 @@ final class NormalizeIsNotEquals extends FormatterPass {
 }
 ;
 final class NormalizeLnAndLtrimLines extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$source = str_replace(["\r\n", "\n\r", "\r", "\n"], $this->new_line, $source);
 
@@ -1632,6 +1712,13 @@ final class NormalizeLnAndLtrimLines extends FormatterPass {
 ;
 final class OrderUseClauses extends FormatterPass {
 	const OPENER_PLACEHOLDER = "<?php /*\x2 ORDERBY \x3*/";
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_USE])) {
+			return true;
+		}
+
+		return false;
+	}
 	private function singleNamespace($source) {
 		$tokens = token_get_all($source);
 		$use_stack = [];
@@ -1846,6 +1933,9 @@ final class OrderUseClauses extends FormatterPass {
 }
 ;
 final class Reindent extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -1938,6 +2028,9 @@ final class Reindent extends FormatterPass {
 }
 ;
 final class ReindentColonBlocks extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->use_cache = true;
@@ -2027,6 +2120,9 @@ final class ReindentColonBlocks extends FormatterPass {
 	}
 };
 final class ReindentIfColonBlocks extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$found_colon = false;
@@ -2103,6 +2199,10 @@ final class ReindentIfColonBlocks extends FormatterPass {
 	}
 };
 final class ReindentLoopColonBlocks extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
+
 	public function format($source) {
 		$tkns = token_get_all($source);
 		$found_endwhile = false;
@@ -2222,6 +2322,11 @@ final class ReindentObjOps extends FormatterPass {
 
 	const ALIGN_WITH_INDENT = 1;
 	const ALIGN_WITH_SPACES = 2;
+
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
+
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -2527,6 +2632,13 @@ final class ReindentObjOps extends FormatterPass {
 }
 ;
 final class RemoveIncludeParentheses extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_INCLUDE]) || isset($found_tokens[T_REQUIRE]) || isset($found_tokens[T_INCLUDE_ONCE]) || isset($found_tokens[T_REQUIRE_ONCE])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -2573,6 +2685,9 @@ final class RemoveIncludeParentheses extends FormatterPass {
 }
 ;
 final class ResizeSpaces extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	private function filterWhitespaces($source) {
 		$tkns = token_get_all($source);
 
@@ -2901,6 +3016,9 @@ final class ResizeSpaces extends FormatterPass {
 }
 ;
 final class RTrim extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		return implode(
 			$this->new_line,
@@ -2924,11 +3042,16 @@ final class SettersAndGettersPass extends FormatterPass {
 			$this->type = self::TYPE_CAMEL_CASE;
 		}
 	}
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_CLASS])) {
+			return true;
+		}
 
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -3040,6 +3163,9 @@ final class SurrogateToken {
 }
 ;
 final class TwoCommandsInSameLine extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3074,6 +3200,9 @@ final class TwoCommandsInSameLine extends FormatterPass {
 ;
 
 final class PSR1BOMMark extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$bom = "\xef\xbb\xbf";
 		if (substr($source, 0, 3) === $bom) {
@@ -3084,6 +3213,13 @@ final class PSR1BOMMark extends FormatterPass {
 }
 ;
 final class PSR1ClassConstants extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_CONST]) || isset($found_tokens[T_STRING])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3112,6 +3248,13 @@ final class PSR1ClassConstants extends FormatterPass {
 	}
 };
 final class PSR1ClassNames extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_CLASS]) || isset($found_tokens[T_STRING])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3146,11 +3289,17 @@ final class PSR1ClassNames extends FormatterPass {
 }
 ;
 final class PSR1MethodNames extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_FUNCTION]) || isset($found_tokens[T_STRING]) || isset($found_tokens[ST_PARENTHESES_OPEN])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
 		$found_method = false;
-
 		$method_replace_list = [];
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
@@ -3206,6 +3355,9 @@ final class PSR1MethodNames extends FormatterPass {
 }
 ;
 final class PSR1OpenTags extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3229,10 +3381,16 @@ final class PSR1OpenTags extends FormatterPass {
 ;
 final class PSR2AlignObjOp extends FormatterPass {
 	const ALIGNABLE_TOKEN = "\x2 OBJOP%d \x3";
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[ST_SEMI_COLON]) || isset($found_tokens[T_ARRAY]) || isset($found_tokens[T_DOUBLE_ARROW]) || isset($found_tokens[T_OBJECT_OPERATOR])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-
 		$context_counter = 0;
 		$context_meta_count = [];
 		while (list($index, $token) = each($this->tkns)) {
@@ -3305,6 +3463,9 @@ final class PSR2AlignObjOp extends FormatterPass {
 }
 ;
 final class PSR2CurlyOpenNextLine extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->indent_char = '    ';
 		$this->tkns = token_get_all($source);
@@ -3384,7 +3545,9 @@ final class PSR2IndentWithSpace extends FormatterPass {
 			$this->size = $size;
 		}
 	}
-
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$indent_spaces = str_repeat(' ', (int) $this->size);
 		$this->tkns = token_get_all($source);
@@ -3407,6 +3570,9 @@ final class PSR2IndentWithSpace extends FormatterPass {
 	}
 };
 final class PSR2KeywordsLowerCase extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3508,6 +3674,13 @@ final class PSR2KeywordsLowerCase extends FormatterPass {
 	}
 };
 final class PSR2LnAfterNamespace extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_NAMESPACE])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3546,6 +3719,9 @@ final class PSR2LnAfterNamespace extends FormatterPass {
 	}
 };
 final class PSR2ModifierVisibilityStaticOrder extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3672,6 +3848,9 @@ final class PSR2ModifierVisibilityStaticOrder extends FormatterPass {
 	}
 };
 final class PSR2SingleEmptyLineAndStripClosingTag extends FormatterPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$token_count = count($this->tkns) - 1;
@@ -3727,6 +3906,13 @@ class PsrDecorator {
 };
 
 class AddMissingParentheses extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_NEW])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3771,7 +3957,10 @@ EOT;
 }
 ;
 final class AlignDoubleArrow extends AdditionalPass {
-	const ALIGNABLE_EQUAL = "\x2 EQUAL%d.%d.%d \x3";// level.levelentracecounter.counter
+	const ALIGNABLE_EQUAL = "\x2 EQUAL%d.%d.%d \x3"; // level.levelentracecounter.counter
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -3917,6 +4106,9 @@ EOT;
 ;
 final class AlignEquals extends AdditionalPass {
 	const ALIGNABLE_EQUAL = "\x2 EQUAL%d \x3";
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -4037,6 +4229,13 @@ final class AutoPreincrement extends AdditionalPass {
 	const CHAIN_FUNC = 'CHAIN_FUNC';
 	const CHAIN_STRING = 'CHAIN_STRING';
 	const PARENTHESES_BLOCK = 'PARENTHESES_BLOCK';
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_INC]) || isset($found_tokens[T_DEC])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		return $this->swap($source);
 	}
@@ -4163,8 +4362,17 @@ EOT;
 	}
 };
 class CakePHPStyle extends AdditionalPass {
+	private $found_tokens;
+	public function candidate($source, $found_tokens) {
+		$this->found_tokens = $found_tokens;
+		return true;
+	}
+
 	public function format($source) {
-		$source = (new PSR2ModifierVisibilityStaticOrder())->format($source);
+		$fmt = new PSR2ModifierVisibilityStaticOrder();
+		if ($fmt->candidate($source, $this->found_tokens)) {
+			$source = $fmt->format($source);
+		}
 		$source = $this->add_underscores_before_name($source);
 		return $source;
 	}
@@ -4261,6 +4469,9 @@ EOT;
 }
 ;
 final class GeneratePHPDoc extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -4423,9 +4634,25 @@ EOT;
 }
 ;
 class JoinToImplode extends AdditionalPass {
-	public function format($source) {
+	public function candidate($source, $found_tokens) {
 		$this->tkns = token_get_all($source);
+		$this->code = '';
 
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case T_STRING:
+					if (strtolower($text) == 'join') {
+						prev($this->tkns);
+						return true;
+					}
+			}
+			$this->append_code($text);
+		}
+		return false;
+	}
+	public function format($source) {
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -4462,11 +4689,21 @@ EOT;
 }
 ;
 class LaravelStyle extends AdditionalPass {
+	private $found_tokens;
+	public function candidate($source, $found_tokens) {
+		$this->found_tokens = $found_tokens;
+		return true;
+	}
+
 	public function format($source) {
 		$source = $this->namespace_merge_with_open_tag($source);
 		$source = $this->allman_style_braces($source);
 		$source = (new RTrim())->format($source);
-		$source = (new TightConcat())->format($source);
+
+		$fmt = new TightConcat();
+		if ($fmt->candidate($source, $this->found_tokens)) {
+			$source = $fmt->format($source);
+		}
 		return $source;
 	}
 
@@ -4589,11 +4826,16 @@ EOT;
  * From PHP-CS-Fixer
  */
 class MergeElseIf extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_ELSE])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-		$paren_count = 0;
-
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -4708,6 +4950,11 @@ final class OrderMethod extends AdditionalPass {
 		}
 		return $return;
 	}
+
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
+
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$return = '';
@@ -4788,6 +5035,13 @@ EOT;
 }
 ;
 class RemoveUseLeadingSlash extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_NAMESPACE]) || isset($found_tokens[T_TRAIT]) || isset($found_tokens[T_CLASS]) || isset($found_tokens[T_FUNCTION]) || isset($found_tokens[T_NS_SEPARATOR])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -4847,6 +5101,13 @@ EOT;
 }
 ;
 class ReturnNull extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_RETURN])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -4937,11 +5198,17 @@ EOT;
 class ShortArray extends AdditionalPass {
 	const FOUND_ARRAY = 'array';
 	const FOUND_PARENTHESES = 'paren';
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_ARRAY])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
 		$found_paren = [];
-
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -4997,6 +5264,13 @@ EOT;
 }
 ;
 final class SmartLnAfterCurlyOpen extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[ST_CURLY_OPEN])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -5076,6 +5350,13 @@ EOT;
 }
 ;
 class SpaceBetweenMethods extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_FUNCTION])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -5141,10 +5422,17 @@ EOT;
 }
 ;
 class TightConcat extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[ST_CONCAT])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
-		$whitespaces = " \t";
 		$this->tkns = token_get_all($source);
 		$this->code = '';
+		$whitespaces = " \t";
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -5188,6 +5476,13 @@ EOT;
 	}
 };
 class WrongConstructorName extends AdditionalPass {
+	public function candidate($source, $found_tokens) {
+		if (isset($found_tokens[T_NAMESPACE]) || isset($found_tokens[T_CLASS])) {
+			return true;
+		}
+
+		return false;
+	}
 	public function format($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -5285,6 +5580,9 @@ final class YodaComparisons extends AdditionalPass {
 	const CHAIN_FUNC = 'CHAIN_FUNC';
 	const CHAIN_STRING = 'CHAIN_STRING';
 	const PARENTHESES_BLOCK = 'PARENTHESES_BLOCK';
+	public function candidate($source, $found_tokens) {
+		return true;
+	}
 	public function format($source) {
 		return $this->yodise($source);
 	}
