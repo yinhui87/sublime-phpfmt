@@ -1679,6 +1679,7 @@ final class NormalizeLnAndLtrimLines extends FormatterPass {
 	}
 	public function format($source) {
 		$source = str_replace(["\r\n", "\n\r", "\r", "\n"], $this->new_line, $source);
+		$source = preg_replace('/\h+$/m', '', $source);
 
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -1874,8 +1875,6 @@ final class OrderUseClauses extends FormatterPass {
 		}
 		if ($namespace_count <= 1 && $touched_t_use) {
 			return $this->singleNamespace($source);
-		} elseif ($namespace_count <= 1) {
-			return $source;
 		}
 
 		$return = '';
@@ -1935,15 +1934,13 @@ final class OrderUseClauses extends FormatterPass {
 							$namespace_block .= $text;
 						}
 					}
-					if ($touched_t_use) {
-						$return .= str_replace(
-							self::OPENER_PLACEHOLDER,
-							'',
-							$this->singleNamespace(self::OPENER_PLACEHOLDER . $namespace_block)
-						);
-					} else {
-						$return .= $namespace_block;
-					}
+
+					$return .= str_replace(
+						self::OPENER_PLACEHOLDER,
+						'',
+						$this->singleNamespace(self::OPENER_PLACEHOLDER . $namespace_block)
+					);
+
 					break;
 				default:
 					$return .= $text;
@@ -3043,15 +3040,7 @@ final class RTrim extends FormatterPass {
 		return true;
 	}
 	public function format($source) {
-		return implode(
-			$this->new_line,
-			array_map(
-				function ($v) {
-					return rtrim($v);
-				},
-				explode($this->new_line, $source)
-			)
-		);
+		return preg_replace('/\h+$/m', '', $source);
 	}
 };
 final class SettersAndGettersPass extends FormatterPass {
@@ -5967,6 +5956,9 @@ if (!isset($testEnv)) {
 			fwrite(STDERR, 'Could not autoupdate - not release found' . PHP_EOL);
 			exit(255);
 		}
+		if ($in_phar) {
+			$argv[0] = dirname(Phar::running(false)) . DIRECTORY_SEPARATOR . $argv[0];
+		}
 		if (sha1_file($argv[0]) != $phar_sha1) {
 			copy($argv[0], $argv[0] . "~");
 			file_put_contents($argv[0], $phar_file);
@@ -6051,6 +6043,9 @@ if (!isset($testEnv)) {
 		}, explode(',', $opts['prepasses']));
 		foreach ($optPasses as $optPass) {
 			if (class_exists($optPass)) {
+				$fmt->addPass(new $optPass());
+			} elseif (is_file('Additionals/' . $optPass . '.php')) {
+				include 'Additionals/' . $optPass . '.php';
 				$fmt->addPass(new $optPass());
 			}
 		}
@@ -6142,6 +6137,9 @@ if (!isset($testEnv)) {
 		foreach ($optPasses as $optPass) {
 			if (class_exists($optPass)) {
 				$fmt->addPass(new $optPass());
+			} elseif (is_file('Additionals/' . $optPass . '.php')) {
+				include 'Additionals/' . $optPass . '.php';
+				$fmt->addPass(new $optPass());
 			}
 		}
 		$argv = extract_from_argv($argv, 'passes');
@@ -6180,6 +6178,9 @@ if (!isset($testEnv)) {
 			echo $fmt->formatCode(file_get_contents('php://stdin'));
 			exit(0);
 		}
+		if ($in_phar) {
+			$argv[1] = dirname(Phar::running(false)) . DIRECTORY_SEPARATOR . $argv[1];
+		}
 		if ('-' == $opts['o']) {
 			echo $fmt->formatCode(file_get_contents($argv[1]));
 			exit(0);
@@ -6203,10 +6204,14 @@ if (!isset($testEnv)) {
 
 		$cache_hit_count = 0;
 		$workers = 4;
+
 		for ($j = 1; $j < $argc; ++$j) {
 			$arg = &$argv[$j];
 			if (!isset($arg)) {
 				continue;
+			}
+			if ($in_phar) {
+				$arg = dirname(Phar::running(false)) . DIRECTORY_SEPARATOR . $arg;
 			}
 			if (is_file($arg)) {
 				$file = $arg;
