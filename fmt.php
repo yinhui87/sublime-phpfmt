@@ -2729,6 +2729,7 @@ final class ResizeSpaces extends FormatterPass {
 
 		$in_ternary_operator = false;
 		$short_ternary_operator = false;
+		$touched_function = false;
 
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
@@ -2861,6 +2862,7 @@ final class ResizeSpaces extends FormatterPass {
 						break;
 					}
 				case ST_CURLY_OPEN:
+					$touched_function = false;
 					if (!$this->has_ln_left_token() && $this->left_useful_token_is([T_STRING, T_DO, T_FINALLY, ST_PARENTHESES_CLOSE])) {
 						$this->rtrim_and_append_code($this->get_space() . $text);
 						break;
@@ -2922,6 +2924,10 @@ final class ResizeSpaces extends FormatterPass {
 				case T_STATIC:
 					$this->append_code($text . $this->get_space(!$this->right_token_is([ST_SEMI_COLON, T_DOUBLE_COLON, ST_PARENTHESES_OPEN])));
 					break;
+				case T_FUNCTION:
+					$touched_function = true;
+					$this->append_code($text . $this->get_space(!$this->right_token_is(ST_SEMI_COLON)));
+					break;
 				case T_PUBLIC:
 				case T_PRIVATE:
 				case T_PROTECTED:
@@ -2935,7 +2941,6 @@ final class ResizeSpaces extends FormatterPass {
 				case T_INCLUDE_ONCE:
 				case T_REQUIRE_ONCE:
 				case T_DECLARE:
-				case T_FUNCTION:
 				case T_IF:
 				case T_FOR:
 				case T_FOREACH:
@@ -3018,13 +3023,10 @@ final class ResizeSpaces extends FormatterPass {
 					$this->append_code(str_replace([' ', "\t"], '', $text) . $this->get_space());
 					break;
 				case ST_REFERENCE:
-					if (($this->left_token_is([T_VARIABLE]) && $this->right_token_is([T_VARIABLE])) || ($this->left_token_is([T_VARIABLE]) && $this->right_token_is([T_STRING])) || ($this->left_token_is([T_STRING]) && $this->right_token_is([T_STRING]))) {
-						$this->append_code($this->get_space() . $text . $this->get_space());
-						break;
-					} elseif ($this->left_token_is([T_STRING])) {
-						$this->append_code($this->get_space() . $text);
-						break;
-					}
+					$space_before = !$this->left_useful_token_is([ST_EQUAL, ST_PARENTHESES_OPEN, T_ARRAY]);
+					$space_after = !$touched_function && !$this->left_useful_token_is(ST_EQUAL);
+					$this->append_code($this->get_space($space_before) . $text . $this->get_space($space_after));
+					break;
 				default:
 					$this->append_code($text);
 					break;
@@ -4243,7 +4245,9 @@ $ccc = 333;
 EOT;
 	}
 };
-final class AutoPreincrement extends AdditionalPass {
+class AutoPreincrement extends AdditionalPass {
+	protected $candidate_tokens = [T_INC, T_DEC];
+	protected $check_against_concat = false;
 	const CHAIN_VARIABLE = 'CHAIN_VARIABLE';
 	const CHAIN_LITERAL = 'CHAIN_LITERAL';
 	const CHAIN_FUNC = 'CHAIN_FUNC';
@@ -4261,17 +4265,29 @@ final class AutoPreincrement extends AdditionalPass {
 	}
 	protected function swap($source) {
 		$tkns = $this->aggregate_variables($source);
+		$touched_concat = false;
 		while (list($ptr, $token) = each($tkns)) {
 			list($id, $text) = $this->get_token($token);
 			switch ($id) {
+				case ST_CONCAT:
+					$touched_concat = true;
+					break;
 				case T_INC:
 				case T_DEC:
 					$prev_token = $tkns[$ptr - 1];
 					list($prev_id, ) = $prev_token;
-					if (T_VARIABLE == $prev_id || self::CHAIN_VARIABLE == $prev_id) {
+					if (
+						(
+							!$this->check_against_concat
+							||
+							($this->check_against_concat && !$touched_concat)
+						) &&
+						(T_VARIABLE == $prev_id || self::CHAIN_VARIABLE == $prev_id)
+					) {
 						list($tkns[$ptr], $tkns[$ptr - 1]) = [$tkns[$ptr - 1], $tkns[$ptr]];
 						break;
 					}
+					$touched_concat = false;
 			}
 		}
 		return $this->render($tkns);
@@ -4285,7 +4301,7 @@ final class AutoPreincrement extends AdditionalPass {
 
 			if (ST_PARENTHESES_OPEN == $id) {
 				$initial_ptr = $ptr;
-				$tmp = $this->scan_and_replace($tkns, $ptr, ST_PARENTHESES_OPEN, ST_PARENTHESES_CLOSE, 'swap', [T_INC, T_DEC]);
+				$tmp = $this->scan_and_replace($tkns, $ptr, ST_PARENTHESES_OPEN, ST_PARENTHESES_CLOSE, 'swap', $this->candidate_tokens);
 				$tkns[$initial_ptr] = [self::PARENTHESES_BLOCK, $tmp];
 				continue;
 			}
@@ -4324,11 +4340,11 @@ final class AutoPreincrement extends AdditionalPass {
 					list($id, $text) = $this->get_token($token);
 					$tkns[$ptr] = null;
 					if (ST_CURLY_OPEN == $id) {
-						$text = $this->scan_and_replace($tkns, $ptr, ST_CURLY_OPEN, ST_CURLY_CLOSE, 'swap', [T_INC, T_DEC]);
+						$text = $this->scan_and_replace($tkns, $ptr, ST_CURLY_OPEN, ST_CURLY_CLOSE, 'swap', $this->candidate_tokens);
 					} elseif (ST_BRACKET_OPEN == $id) {
-						$text = $this->scan_and_replace($tkns, $ptr, ST_BRACKET_OPEN, ST_BRACKET_CLOSE, 'swap', [T_INC, T_DEC]);
+						$text = $this->scan_and_replace($tkns, $ptr, ST_BRACKET_OPEN, ST_BRACKET_CLOSE, 'swap', $this->candidate_tokens);
 					} elseif (ST_PARENTHESES_OPEN == $id) {
-						$text = $this->scan_and_replace($tkns, $ptr, ST_PARENTHESES_OPEN, ST_PARENTHESES_CLOSE, 'swap', [T_INC, T_DEC]);
+						$text = $this->scan_and_replace($tkns, $ptr, ST_PARENTHESES_OPEN, ST_PARENTHESES_CLOSE, 'swap', $this->candidate_tokens);
 					}
 
 					$stack .= $text;
@@ -4902,6 +4918,10 @@ EOT;
 	}
 }
 ;
+class MildAutoPreincrement extends AutoPreincrement {
+	protected $candidate_tokens = [];
+	protected $check_against_concat = true;
+};
 final class OrderMethod extends AdditionalPass {
 	const OPENER_PLACEHOLDER = "<?php /*\x2 ORDERMETHOD \x3*/";
 	const METHOD_REPLACEMENT_PLACEHOLDER = "\x2 METHODPLACEHOLDER \x3";
@@ -6017,9 +6037,11 @@ if (!isset($testEnv)) {
 	}
 
 	$cache = null;
+	$cache_fn = null;
 	if ($enable_cache && isset($opts['cache'])) {
 		$argv = extract_from_argv($argv, 'cache');
-		$cache = new Cache($opts['cache']);
+		$cache_fn = $opts['cache'];
+		$cache = new Cache($cache_fn);
 		fwrite(STDERR, 'Using cache ...' . PHP_EOL);
 	}
 	$backup = true;
@@ -6234,7 +6256,11 @@ if (!isset($testEnv)) {
 						fwrite(STDERR, 'Starting ' . $workers . ' workers ...' . PHP_EOL);
 					}
 					for ($i = 0; $i < $workers; ++$i) {
-						cofunc(function ($fmt, $backup, $cache, $chn, $chn_done, $id) {
+						cofunc(function ($fmt, $backup, $cache_fn, $chn, $chn_done, $id) {
+							$cache = null;
+							if (null !== $cache_fn) {
+								$cache = new Cache($cache_fn);
+							}
 							$cache_hit_count = 0;
 							$cache_miss_count = 0;
 							while (true) {
@@ -6266,7 +6292,7 @@ if (!isset($testEnv)) {
 								rename($file . '-tmp', $file);
 							}
 							$chn_done->in([$cache_hit_count, $cache_miss_count]);
-						}, $fmt, $backup, $cache, $chn, $chn_done, $i);
+						}, $fmt, $backup, $cache_fn, $chn, $chn_done, $i);
 					}
 				}
 				foreach ($files as $file) {
