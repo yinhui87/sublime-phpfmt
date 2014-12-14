@@ -421,6 +421,9 @@ abstract class FormatterPass {
 			if (T_CURLY_OPEN == $id) {
 				++$count;
 			}
+			if (T_DOLLAR_OPEN_CURLY_BRACES == $id) {
+				++$count;
+			}
 			if (ST_CURLY_CLOSE == $id) {
 				--$count;
 			}
@@ -2915,7 +2918,7 @@ final class ResizeSpaces extends FormatterPass {
 						break;
 					}
 				case T_DOUBLE_ARROW:
-					if (T_DOUBLE_ARROW == $id && $this->left_token_is([T_CONSTANT_ENCAPSED_STRING, T_STRING, T_VARIABLE, T_LNUMBER, T_DNUMBER, ST_PARENTHESES_CLOSE, ST_BRACKET_CLOSE, ST_CURLY_CLOSE])) {
+					if (T_DOUBLE_ARROW == $id && $this->left_token_is([T_CONSTANT_ENCAPSED_STRING, T_STRING, T_VARIABLE, T_LNUMBER, T_DNUMBER, ST_PARENTHESES_CLOSE, ST_BRACKET_CLOSE, ST_CURLY_CLOSE, ST_QUOTE])) {
 						$this->rtrim_and_append_code($this->get_space() . $text . $this->get_space());
 						break;
 					}
@@ -4409,9 +4412,29 @@ class CakePHPStyle extends AdditionalPass {
 		}
 		$source = $this->add_underscores_before_name($source);
 		$source = $this->remove_space_after_casts($source);
+		$source = $this->merge_equals_with_reference($source);
 		return $source;
 	}
 
+	private function merge_equals_with_reference($source) {
+		$this->tkns = token_get_all($source);
+		$this->code = '';
+		$max_detected_indent = 0;
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case ST_REFERENCE:
+					if ($this->left_useful_token_is(ST_EQUAL)) {
+						$this->rtrim_and_append_code($text . $this->get_space());
+						break;
+					}
+				default:
+					$this->append_code($text);
+			}
+		}
+		return $this->code;
+	}
 	private function remove_space_after_casts($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
