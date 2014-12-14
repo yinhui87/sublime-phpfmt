@@ -2087,20 +2087,23 @@ final class ReindentColonBlocks extends FormatterPass {
 					$this->append_code($text);
 					$this->print_until_the_end_of_string();
 					break;
+
 				case T_SWITCH:
 					++$switch_level;
 					$switch_curly_count[$switch_level] = 0;
 					$touched_colon = false;
 					$this->append_code($text);
 					break;
+
 				case ST_CURLY_OPEN:
 					$this->append_code($text);
-					if ($this->left_token_is([T_VARIABLE, T_OBJECT_OPERATOR])) {
+					if ($this->left_token_is([T_VARIABLE, T_OBJECT_OPERATOR, ST_DOLLAR])) {
 						$this->print_curly_block();
 						break;
 					}
 					++$switch_curly_count[$switch_level];
 					break;
+
 				case ST_CURLY_CLOSE:
 					--$switch_curly_count[$switch_level];
 					if (0 === $switch_curly_count[$switch_level] && $switch_level > 0) {
@@ -2108,15 +2111,18 @@ final class ReindentColonBlocks extends FormatterPass {
 					}
 					$this->append_code($this->get_indent($switch_level) . $text);
 					break;
+
 				case T_DEFAULT:
 				case T_CASE:
 					$touched_colon = false;
 					$this->append_code($text);
 					break;
+
 				case ST_COLON:
 					$touched_colon = true;
 					$this->append_code($text);
 					break;
+
 				default:
 					$has_ln = $this->has_ln($text);
 					if ($has_ln) {
@@ -2733,6 +2739,7 @@ final class ResizeSpaces extends FormatterPass {
 		$in_ternary_operator = false;
 		$short_ternary_operator = false;
 		$touched_function = false;
+		$touched_use = false;
 
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
@@ -2864,7 +2871,10 @@ final class ResizeSpaces extends FormatterPass {
 					}
 				case ST_CURLY_OPEN:
 					$touched_function = false;
-					if (!$this->has_ln_left_token() && $this->left_useful_token_is([T_STRING, T_DO, T_FINALLY, ST_PARENTHESES_CLOSE])) {
+					if (!$touched_use && $this->left_useful_token_is([T_VARIABLE, T_STRING]) && $this->right_useful_token_is([T_VARIABLE, T_STRING])) {
+						$this->append_code($text);
+						break;
+					} elseif (!$this->has_ln_left_token() && $this->left_useful_token_is([T_STRING, T_DO, T_FINALLY, ST_PARENTHESES_CLOSE])) {
 						$this->rtrim_and_append_code($this->get_space() . $text);
 						break;
 					} elseif ($this->right_token_is(ST_CURLY_CLOSE) || ($this->right_token_is([T_VARIABLE]) && $this->left_token_is([T_OBJECT_OPERATOR, ST_DOLLAR]))) {
@@ -2879,6 +2889,7 @@ final class ResizeSpaces extends FormatterPass {
 					}
 
 				case ST_SEMI_COLON:
+					$touched_use = false;
 					if ($this->right_token_is([T_VARIABLE, T_INC, T_DEC, T_LNUMBER, T_DNUMBER, T_COMMENT, T_DOC_COMMENT])) {
 						$this->append_code($text . $this->get_space());
 						break;
@@ -2899,6 +2910,7 @@ final class ResizeSpaces extends FormatterPass {
 					} else {
 						$this->append_code($text . $this->get_space());
 					}
+					$touched_use = true;
 					break;
 				case T_RETURN:
 				case T_YIELD:
@@ -4424,7 +4436,6 @@ class CakePHPStyle extends AdditionalPass {
 	private function resize_spaces($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-		$max_detected_indent = 0;
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -4457,7 +4468,6 @@ class CakePHPStyle extends AdditionalPass {
 	private function merge_equals_with_reference($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-		$max_detected_indent = 0;
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -4476,7 +4486,6 @@ class CakePHPStyle extends AdditionalPass {
 	private function remove_space_after_casts($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-		$max_detected_indent = 0;
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
 			$this->ptr = $index;
@@ -4515,7 +4524,6 @@ class CakePHPStyle extends AdditionalPass {
 	private function add_underscores_before_name($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
-		$max_detected_indent = 0;
 		$level_touched = null;
 		while (list($index, $token) = each($this->tkns)) {
 			list($id, $text) = $this->get_token($token);
