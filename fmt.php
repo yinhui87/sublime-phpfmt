@@ -2092,8 +2092,8 @@ final class ReindentColonBlocks extends FormatterPass {
 					break;
 				case ST_CURLY_OPEN:
 					$this->append_code($text);
-					if ($this->left_token_is([T_VARIABLE])) {
-						$this->print_until(ST_CURLY_CLOSE);
+					if ($this->left_token_is([T_VARIABLE, T_OBJECT_OPERATOR])) {
+						$this->print_curly_block();
 						break;
 					}
 					++$switch_curly_count[$switch_level];
@@ -2747,12 +2747,10 @@ final class ResizeSpaces extends FormatterPass {
 
 				case '+':
 				case '-':
-					list($prev_id, $prev_text) = $this->inspect_token(-1);
-					list($next_id, $next_text) = $this->inspect_token(+1);
 					if (
-						(T_LNUMBER === $prev_id || T_DNUMBER === $prev_id || T_VARIABLE === $prev_id || ST_PARENTHESES_CLOSE === $prev_id || T_STRING === $prev_id)
+						$this->left_useful_token_is([T_LNUMBER, T_DNUMBER, T_VARIABLE, ST_PARENTHESES_CLOSE, T_STRING, T_ARRAY, T_ARRAY_CAST, T_BOOL_CAST, T_DOUBLE_CAST, T_INT_CAST, T_OBJECT_CAST, T_STRING_CAST, T_UNSET_CAST])
 						&&
-						(T_LNUMBER === $next_id || T_DNUMBER === $next_id || T_VARIABLE === $next_id || ST_PARENTHESES_CLOSE === $next_id || T_STRING === $next_id)
+						$this->right_useful_token_is([T_LNUMBER, T_DNUMBER, T_VARIABLE, ST_PARENTHESES_CLOSE, T_STRING, T_ARRAY, T_ARRAY_CAST, T_BOOL_CAST, T_DOUBLE_CAST, T_INT_CAST, T_OBJECT_CAST, T_STRING_CAST, T_UNSET_CAST])
 					) {
 						$this->append_code($this->get_space() . $text . $this->get_space());
 					} else {
@@ -3023,8 +3021,8 @@ final class ResizeSpaces extends FormatterPass {
 					$this->append_code(str_replace([' ', "\t"], '', $text) . $this->get_space());
 					break;
 				case ST_REFERENCE:
-					$space_before = !$this->left_useful_token_is([ST_EQUAL, ST_PARENTHESES_OPEN, T_ARRAY]);
-					$space_after = !$touched_function && !$this->left_useful_token_is(ST_EQUAL);
+					$space_before = !$this->left_useful_token_is([ST_EQUAL, ST_PARENTHESES_OPEN, T_ARRAY, T_AS, T_DOUBLE_ARROW]);
+					$space_after = !$touched_function && !$this->left_useful_token_is([ST_EQUAL, ST_PARENTHESES_OPEN, T_AS, T_DOUBLE_ARROW]);
 					$this->append_code($this->get_space($space_before) . $text . $this->get_space($space_after));
 					break;
 				default:
@@ -4410,9 +4408,48 @@ class CakePHPStyle extends AdditionalPass {
 			$source = $fmt->format($source);
 		}
 		$source = $this->add_underscores_before_name($source);
+		$source = $this->remove_space_after_casts($source);
 		return $source;
 	}
 
+	private function remove_space_after_casts($source) {
+		$this->tkns = token_get_all($source);
+		$this->code = '';
+		$max_detected_indent = 0;
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->get_token($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case T_ARRAY_CAST:
+				case T_BOOL_CAST:
+				case T_DOUBLE_CAST:
+				case T_INT_CAST:
+				case T_OBJECT_CAST:
+				case T_STRING_CAST:
+				case T_UNSET_CAST:
+				case T_STRING:
+				case T_VARIABLE:
+					if (
+						$this->left_useful_token_is([
+							T_ARRAY_CAST,
+							T_BOOL_CAST,
+							T_DOUBLE_CAST,
+							T_INT_CAST,
+							T_OBJECT_CAST,
+							T_STRING_CAST,
+							T_UNSET_CAST,
+						])
+					) {
+						$this->rtrim_and_append_code($text);
+						break;
+					}
+				default:
+					$this->append_code($text);
+					break;
+			}
+		}
+		return $this->code;
+	}
 	private function add_underscores_before_name($source) {
 		$this->tkns = token_get_all($source);
 		$this->code = '';
@@ -4442,9 +4479,30 @@ class CakePHPStyle extends AdditionalPass {
 					$level_touched = null;
 					break;
 				case T_STRING:
-					if ($this->left_useful_token_is(T_FUNCTION)) {
-						$text = str_replace('__', '', $text);
-						$text = str_replace('_', '', $text);
+					if (
+						$this->left_useful_token_is(T_FUNCTION) &&
+						'__construct' != $text &&
+						'__destruct' != $text &&
+						'__call' != $text &&
+						'__callStatic' != $text &&
+						'__get' != $text &&
+						'__set' != $text &&
+						'__isset' != $text &&
+						'__unset' != $text &&
+						'__sleep' != $text &&
+						'__wakeup' != $text &&
+						'__toString' != $text &&
+						'__invoke' != $text &&
+						'__set_state' != $text &&
+						'__clone' != $text &&
+						' __debugInfo' != $text
+					) {
+						if (substr($text, 0, 2) == '__') {
+							$text = substr($text, 2);
+						}
+						if (substr($text, 0, 1) == '_') {
+							$text = substr($text, 1);
+						}
 						if (T_PROTECTED == $level_touched) {
 							$text = '_' . $text;
 						} elseif (T_PRIVATE == $level_touched) {
