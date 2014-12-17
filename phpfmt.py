@@ -40,7 +40,7 @@ def dofmt(eself, eview, sgter = None):
     cakephp_style = s.get("cakephp_style", False)
 
     php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     uri = view.file_name()
@@ -243,7 +243,7 @@ def dogeneratephpdoc(eself, eview):
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
@@ -367,7 +367,7 @@ def doreordermethod(eself, eview):
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
