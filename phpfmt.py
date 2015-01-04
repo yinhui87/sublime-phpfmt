@@ -38,6 +38,7 @@ def dofmt(eself, eview, sgter = None):
     ignore_list = s.get("ignore_list", "")
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
+    strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -183,6 +184,9 @@ def dofmt(eself, eview, sgter = None):
         if join_to_implode:
             extras.append("JoinToImplode")
 
+        if strip_extra_comma_in_array:
+            extras.append("StripExtraCommaInArray")
+
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
 
@@ -247,6 +251,7 @@ def dogeneratephpdoc(eself, eview):
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
+    strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -327,6 +332,9 @@ def dogeneratephpdoc(eself, eview):
         if merge_else_if:
             extras.append("MergeElseIf")
 
+        if strip_extra_comma_in_array:
+            extras.append("StripExtraCommaInArray")
+
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
 
@@ -371,6 +379,7 @@ def doreordermethod(eself, eview):
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
+    strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -450,6 +459,9 @@ def doreordermethod(eself, eview):
 
         if merge_else_if:
             extras.append("MergeElseIf")
+
+        if strip_extra_comma_in_array:
+            extras.append("StripExtraCommaInArray")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
