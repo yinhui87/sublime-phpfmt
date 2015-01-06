@@ -746,6 +746,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "save_before_format_now":"save before 'format now'",
             "short_array":"short array",
             "smart_linebreak_after_curly":"smart linebreak after curly",
+            "strip_extra_comma_in_array":"strip extra comma in array",
             "vet":"vet",
             "visibility_order":"visibility order",
             "wrong_constructor_name":"update old style constructor",
