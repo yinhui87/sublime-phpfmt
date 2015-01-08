@@ -39,6 +39,7 @@ def dofmt(eself, eview, sgter = None):
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
     strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
+    pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -191,6 +192,9 @@ def dofmt(eself, eview, sgter = None):
             cmd_fmt.append("--passes="+','.join(extras))
 
         preextras = []
+        if pretty_print_doc_blocks:
+            preextras.append("PrettyPrintDocBlocks")
+
         if encapsulate_namespaces:
             preextras.append("EncapsulateNamespaces")
 
@@ -380,6 +384,7 @@ def doreordermethod(eself, eview):
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
     strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
+    pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -738,6 +743,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "linebreak_after_namespace":"automatic linebreak after namespace",
             "linebreak_between_methods":"automatic linebreak between methods",
             "merge_else_if":"merge else if into elseif",
+            "pretty_print_doc_blocks":"doc block beautifier",
             "psr1":"PSR1",
             "psr1_naming":"PSR1 Class and Method Naming",
             "psr2":"PSR2",

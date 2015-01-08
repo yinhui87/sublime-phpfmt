@@ -8,6 +8,7 @@
     {"caption": "phpfmt: toggle CakePHP style (experimental)", "command": "toggle", "args": {"option":"cakephp_style"}},
     {"caption": "phpfmt: toggle convert long array into short array", "command": "toggle", "args": {"option":"short_array"}},
     {"caption": "phpfmt: toggle dependency autoimport", "command": "toggle", "args": {"option":"autoimport"}},
+    {"caption": "phpfmt: toggle doc block beautifier", "command": "toggle", "args": {"option":"pretty_print_doc_blocks"}},
     {"caption": "phpfmt: toggle format on save", "command": "toggle", "args": {"option":"format_on_save"}},
     {"caption": "phpfmt: toggle indent with space", "command": "toggle", "args": {"option":"indent_with_space"}},
     {"caption": "phpfmt: toggle laravel style (experimental)", "command": "toggle", "args": {"option":"laravel_style"}},
