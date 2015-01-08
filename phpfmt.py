@@ -40,6 +40,7 @@ def dofmt(eself, eview, sgter = None):
     cakephp_style = s.get("cakephp_style", False)
     strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
     pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
+    additional_extensions = s.get("additional_extensions", [])
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -49,7 +50,7 @@ def dofmt(eself, eview, sgter = None):
     dirnm, sfn = os.path.split(uri)
     ext = os.path.splitext(uri)[1][1:]
 
-    if "php" != ext:
+    if "php" != ext and not ext in additional_extensions:
         if debug:
             print("phpfmt: not a PHP file")
         return False
@@ -256,12 +257,13 @@ def dogeneratephpdoc(eself, eview):
     laravel_style = s.get("laravel_style", False)
     cakephp_style = s.get("cakephp_style", False)
     strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
+    additional_extensions = s.get("additional_extensions", [])
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
     ext = os.path.splitext(uri)[1][1:]
 
-    if "php" != ext:
+    if "php" != ext and not ext in additional_extensions:
         print("phpfmt: not a PHP file")
         sublime.status_message("phpfmt: not a PHP file")
         return False
@@ -385,12 +387,13 @@ def doreordermethod(eself, eview):
     cakephp_style = s.get("cakephp_style", False)
     strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
     pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
+    additional_extensions = s.get("additional_extensions", [])
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
     ext = os.path.splitext(uri)[1][1:]
 
-    if "php" != ext:
+    if "php" != ext and not ext in additional_extensions:
         print("phpfmt: not a PHP file")
         sublime.status_message("phpfmt: not a PHP file")
         return False
@@ -508,12 +511,13 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
     refactor_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "refactor.php")
+    additional_extensions = s.get("additional_extensions", [])
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
     ext = os.path.splitext(uri)[1][1:]
 
-    if "php" != ext:
+    if "php" != ext and not ext in additional_extensions:
         print("phpfmt: not a PHP file")
         sublime.status_message("phpfmt: not a PHP file")
         return False
@@ -669,7 +673,10 @@ class CalltipCommand(sublime_plugin.TextCommand):
         dirnm, sfn = os.path.split(uri)
         ext = os.path.splitext(uri)[1][1:]
 
-        if "php" != ext:
+        s = sublime.load_settings('phpfmt.sublime-settings')
+
+        additional_extensions = s.get("additional_extensions", [])
+        if "php" != ext and not ext in additional_extensions:
             return False
 
         if not lookForOracleFile(self.view):
@@ -681,7 +688,6 @@ class CalltipCommand(sublime_plugin.TextCommand):
 
         lastCalltip = lookTerm
 
-        s = sublime.load_settings('phpfmt.sublime-settings')
         php_bin = s.get("php_bin", "php")
         oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
 
@@ -788,7 +794,10 @@ class RefactorCommand(sublime_plugin.TextCommand):
         dirnm, sfn = os.path.split(uri)
         ext = os.path.splitext(uri)[1][1:]
 
-        if "php" != ext:
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        additional_extensions = s.get("additional_extensions", [])
+
+        if "php" != ext and not ext in additional_extensions:
             print("phpfmt: not a PHP file")
             sublime.status_message("phpfmt: not a PHP file")
             return False
@@ -832,7 +841,9 @@ class PhpfmtVetCommand(sublime_plugin.TextCommand):
         uri = view.file_name()
         dirNm, sfn = os.path.split(uri)
         ext = os.path.splitext(uri)[1][1:]
-        if "php" != ext:
+        additional_extensions = s.get("additional_extensions", [])
+
+        if "php" != ext and not ext in additional_extensions:
             print("phpfmt (vet): not a PHP file")
             return False
 
