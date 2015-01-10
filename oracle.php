@@ -1,4 +1,5 @@
 <?php
+class ParseException extends Exception {}
 
 class ClassParser extends Parser {
 	private function detectsNamespace() {
@@ -14,6 +15,9 @@ class ClassParser extends Parser {
 							continue;
 						}
 						$namespace .= $text;
+						if ('{' == $id) {
+							throw new ParseException("Namespaces with curly braces are not yet supported.");
+						}
 					} while (';' != $id);
 					break 2;
 			}
@@ -101,6 +105,10 @@ class ClassMethodParser extends Parser {
 							continue;
 						}
 						$namespace .= $text;
+						if ('{' == $id) {
+							throw new ParseException("Namespaces with curly braces are not yet supported.");
+						}
+
 					} while (';' != $id);
 					break 2;
 			}
@@ -281,13 +289,13 @@ abstract class Parser {
 	}
 	protected function prev_token() {
 		$i = $this->ptr;
-		while (--$i >= 0 && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
+		while (--$i >= 0 && isset($this->tkns[$i][1]) && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
 		return $this->tkns[$i];
 	}
 	protected function walk_next_token() {
 		$i = $this->ptr;
 		$sizeof_tokens = sizeof($this->tkns);
-		while (++$i <= $sizeof_tokens && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
+		while (++$i <= $sizeof_tokens && isset($this->tkns[$i][1]) && is_array($this->tkns[$i]) && T_WHITESPACE === $this->tkns[$i][0]);
 		$this->ptr = $i;
 		if (!isset($this->tkns[$i])) {
 			return;
@@ -407,16 +415,17 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 				continue 2;
 			}
 		}
-		echo $file, PHP_EOL;
+		echo $file;
 
 		$content = file_get_contents($file);
 
-		list($class, $extends, $implements) = (new ClassParser($file, $debug))->parse($content);
-		$methods = (new ClassMethodParser($file, $debug))->parse($content);
+		try {
+			list($class, $extends, $implements) = (new ClassParser($file, $debug))->parse($content);
+			$methods = (new ClassMethodParser($file, $debug))->parse($content);
 
-		foreach ($class as $class_name => $class_data) {
-			foreach ($class_data as $data) {
-				$db->exec('
+			foreach ($class as $class_name => $class_data) {
+				foreach ($class_data as $data) {
+					$db->exec('
 				INSERT INTO
 					classes
 				VALUES
@@ -427,11 +436,11 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 						"' . SQLite3::escapeString($data['implements']) . '"
 					);
 				');
+				}
 			}
-		}
 
-		foreach ($extends as $extends_name => $data) {
-			$db->exec('
+			foreach ($extends as $extends_name => $data) {
+				$db->exec('
 				INSERT INTO
 					extends
 				VALUES
@@ -442,10 +451,10 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 						"' . SQLite3::escapeString($data['implements']) . '"
 					);
 			');
-		}
+			}
 
-		foreach ($implements as $implements_name => $data) {
-			$db->exec('
+			foreach ($implements as $implements_name => $data) {
+				$db->exec('
 				INSERT INTO
 					implements
 				VALUES
@@ -456,11 +465,11 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 						"' . SQLite3::escapeString($data['extends']) . '"
 					);
 			');
-		}
+			}
 
-		foreach ($methods as $class => $class_methods) {
-			foreach ($class_methods as $data) {
-				$db->exec("
+			foreach ($methods as $class => $class_methods) {
+				foreach ($class_methods as $data) {
+					$db->exec("
 				INSERT INTO
 					methods
 				VALUES
@@ -472,7 +481,11 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 						'" . SQLite3::escapeString($data[2]) . "'
 					);
 				");
+				}
 			}
+			echo ' done', PHP_EOL;
+		} catch (ParseException $pe) {
+			echo ' skipped - ' . $pe->getMessage() . PHP_EOL;
 		}
 	}
 	$db->close();
