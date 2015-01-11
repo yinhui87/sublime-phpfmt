@@ -691,10 +691,10 @@ class ClassMethodParser extends Parser {
 						if (T_VARIABLE == $id || ',' == $text || '(' == $text || ')' == $text) {
 							$functionCall .= $text;
 						}
-						$functionSignature .= $text;
-						if (ST_PARENTHESES_CLOSE == $id) {
+						if (ST_CURLY_OPEN == $id || ST_SEMI_COLON == $id) {
 							break;
 						}
+						$functionSignature .= $text;
 					}
 					$methodList[] = [
 						$functionName,
@@ -709,17 +709,8 @@ class ClassMethodParser extends Parser {
 
 };
 
-if (!isset($argv[1])) {
-	exit(255);
-}
-$cmd = trim(strtolower($argv[1]));
-$ignoreList = [];
-$ignoreListFn = 'oracle.ignore';
-if (file_exists($ignoreListFn)) {
-	$ignoreList = file($ignoreListFn);
-}
-$fnDb = 'oracle.sqlite';
-if (!file_exists($fnDb) || 'flush' == $cmd) {
+function flushDb($uri, $fnDb, $ignoreList) {
+
 	file_exists($fnDb) && unlink($fnDb);
 	$db = new SQLite3($fnDb);
 	$db->exec(
@@ -758,7 +749,6 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 
 	fwrite(STDERR, "Database not found... generating" . PHP_EOL);
 	$debug = false;
-	$uri = $argv[2];
 
 	$dir = new RecursiveDirectoryIterator($uri);
 	$it = new RecursiveIteratorIterator($dir);
@@ -852,6 +842,25 @@ if (!file_exists($fnDb) || 'flush' == $cmd) {
 		}
 	}
 	$db->close();
+};
+
+if (!isset($argv[1])) {
+	exit(255);
+}
+$cmd = trim(strtolower($argv[1]));
+$ignoreList = [];
+$ignoreListFn = 'oracle.ignore';
+if (file_exists($ignoreListFn)) {
+	$ignoreList = file($ignoreListFn);
+}
+
+if (!isset($fnDb)) {
+	$fnDb = 'oracle.sqlite';
+}
+
+if (!file_exists($fnDb) || 'flush' == $cmd) {
+	$uri = $argv[2];
+	flushDb($uri, $fnDb, $ignoreList);
 	exit(0);
 }
 if (time() - filemtime($fnDb) > 86400) {
