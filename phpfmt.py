@@ -41,6 +41,7 @@ def dofmt(eself, eview, sgter = None):
     strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
     pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
     comment_auto_align = s.get("comment_auto_align", False)
+    typehint_auto_align = s.get("typehint_auto_align", False)
     additional_extensions = s.get("additional_extensions", [])
 
     php_bin = s.get("php_bin", "php")
@@ -192,6 +193,9 @@ def dofmt(eself, eview, sgter = None):
 
         if comment_auto_align:
             extras.append("AlignDoubleSlashComments")
+
+        if typehint_auto_align:
+            extras.append("AlignTypehint")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -392,6 +396,7 @@ def doreordermethod(eself, eview):
     strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
     pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
     comment_auto_align = s.get("comment_auto_align", False)
+    typehint_auto_align = s.get("typehint_auto_align", False)
     additional_extensions = s.get("additional_extensions", [])
 
     uri = view.file_name()
@@ -478,6 +483,9 @@ def doreordermethod(eself, eview):
 
         if comment_auto_align:
             extras.append("AlignDoubleSlashComments")
+
+        if typehint_auto_align:
+            extras.append("AlignTypehint")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -749,6 +757,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "autopreincrement":"automatic preincrement",
             "cakephp_style":"CakePHP style",
             "comment_auto_align":"comments auto align",
+            "typehint_auto_align":"typehint auto align",
             "enable_auto_align":"auto align",
             "encapsulate_namespaces":"automatic namespace encapsulation",
             "format_on_save":"format on save",

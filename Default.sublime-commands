@@ -2,6 +2,8 @@
     {"caption": "phpfmt: format now", "command": "fmt_now"},
     {"caption": "phpfmt: toggle add missing parentheses for instantion calls", "command": "toggle", "args": {"option":"add_missing_parentheses"}},
     {"caption": "phpfmt: toggle auto align", "command": "toggle", "args": {"option":"enable_auto_align"}},
+    {"caption": "phpfmt: toggle auto align of comments", "command": "toggle", "args": {"option":"comment_auto_align"}},
+    {"caption": "phpfmt: toggle auto align of typehints", "command": "toggle", "args": {"option":"typehint_auto_align"}},
     {"caption": "phpfmt: toggle autocomplete", "command": "toggle", "args": {"option":"autocomplete"}},
     {"caption": "phpfmt: toggle automatic preincrement/predecrement", "command": "toggle", "args": {"option":"autopreincrement"}},
     {"caption": "phpfmt: toggle automatic namespace encapsulation", "command": "toggle", "args": {"option":"encapsulate_namespaces"}},
