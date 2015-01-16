@@ -191,11 +191,11 @@ def dofmt(eself, eview, sgter = None):
         if strip_extra_comma_in_array:
             extras.append("StripExtraCommaInArray")
 
-        if comment_auto_align:
-            extras.append("AlignDoubleSlashComments")
-
         if typehint_auto_align:
             extras.append("AlignTypehint")
+
+        if comment_auto_align:
+            extras.append("AlignDoubleSlashComments")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -481,11 +481,11 @@ def doreordermethod(eself, eview):
         if strip_extra_comma_in_array:
             extras.append("StripExtraCommaInArray")
 
-        if comment_auto_align:
-            extras.append("AlignDoubleSlashComments")
-
         if typehint_auto_align:
             extras.append("AlignTypehint")
+
+        if comment_auto_align:
+            extras.append("AlignDoubleSlashComments")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
