@@ -523,7 +523,10 @@ abstract class Parser extends FormatterPass {
 					break 2;
 			}
 		}
-		$namespace = substr($namespace, 0, -1) . '\\';
+		if ('\\' == substr($namespace, 0, -1)) {
+			$namespace = substr($namespace, 0, -1);
+		}
+		$namespace .= '\\';
 		return $namespace;
 	}
 
