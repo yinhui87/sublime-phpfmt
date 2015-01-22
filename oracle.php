@@ -876,7 +876,7 @@ function introspectInterface(&$found_implements) {
 	echo PHP_EOL;
 }
 if ("implements" == $cmd) {
-	$results = $db->query("SELECT * FROM implements WHERE implements = '" . SQLite3::escapeString($argv[2]) . "'");
+	$results = $db->query("SELECT * FROM implements WHERE implements LIKE '%" . SQLite3::escapeString($argv[2]) . "'");
 	$found_implements = [];
 	while ($row = $results->fetchArray()) {
 		$found_implements[] = [
@@ -899,7 +899,7 @@ function introspectExtends(&$found_extends) {
 	echo PHP_EOL;
 }
 if ("extends" == $cmd) {
-	$results = $db->query("SELECT * FROM extends WHERE extends = '" . SQLite3::escapeString($argv[2]) . "'");
+	$results = $db->query("SELECT * FROM extends WHERE extends LIKE '%" . SQLite3::escapeString($argv[2]) . "'");
 	$found_extends = [];
 	while ($row = $results->fetchArray()) {
 		$found_extends[] = [
@@ -952,7 +952,7 @@ if ("class" == $cmd) {
 if ("introspect" == $cmd) {
 	$target = $argv[2];
 
-	$results = $db->query("SELECT * FROM implements WHERE implements = '%" . SQLite3::escapeString($target) . "'");
+	$results = $db->query("SELECT * FROM implements WHERE implements LIKE '%" . SQLite3::escapeString($target) . "'");
 	$all_found_implements = [];
 	while ($row = $results->fetchArray()) {
 		$all_found_implements[$row['implements']][] = [
@@ -965,7 +965,7 @@ if ("introspect" == $cmd) {
 		introspectInterface($found_implements);
 	}
 
-	$results = $db->query("SELECT * FROM extends WHERE extends = '%" . SQLite3::escapeString($target) . "'");
+	$results = $db->query("SELECT * FROM extends WHERE extends LIKE '%" . SQLite3::escapeString($target) . "'");
 	$all_found_extends = [];
 	while ($row = $results->fetchArray()) {
 		$all_found_extends[$row['extends']][] = [
