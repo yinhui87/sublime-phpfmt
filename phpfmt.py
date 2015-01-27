@@ -1053,6 +1053,12 @@ class PHPFmtComplete(sublime_plugin.EventListener):
 
         return comps
 
+# Preparing for sublime-phpfmt 2 upgrade
+s = sublime.load_settings('phpfmt.sublime-settings')
+version = s.get('version', 1)
+s.set('version', version)
+sublime.save_settings('phpfmt.sublime-settings')
+
 def _ct_poller():
     s = sublime.load_settings('phpfmt.sublime-settings')
     if s.get("calltip", False):

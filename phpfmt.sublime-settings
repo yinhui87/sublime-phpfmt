@@ -1,4 +1,5 @@
 {
+'version': 1,
 // "psr1":false,
 // "psr2":false,
 // "php_bin":"/usr/local/bin/php",
