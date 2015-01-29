@@ -43,6 +43,7 @@ def dofmt(eself, eview, sgter = None):
     comment_auto_align = s.get("comment_auto_align", False)
     typehint_auto_align = s.get("typehint_auto_align", False)
     additional_extensions = s.get("additional_extensions", [])
+    wordwrap = s.get("wordwrap", [])
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -196,6 +197,9 @@ def dofmt(eself, eview, sgter = None):
 
         if comment_auto_align:
             extras.append("AlignDoubleSlashComments")
+
+        if wordwrap:
+            extras.append("WordWrap")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -779,6 +783,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "strip_extra_comma_in_array":"strip extra comma in array",
             "vet":"vet",
             "visibility_order":"visibility order",
+            "wordwrap":"wordwrap (80 columns)",
             "wrong_constructor_name":"update old style constructor",
             "yoda":"yoda mode",
         }
