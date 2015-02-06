@@ -44,6 +44,7 @@ def dofmt(eself, eview, sgter = None):
     typehint_auto_align = s.get("typehint_auto_align", False)
     additional_extensions = s.get("additional_extensions", [])
     wordwrap = s.get("wordwrap", [])
+    space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -222,6 +223,14 @@ def dofmt(eself, eview, sgter = None):
 
         if len(preextras) > 0:
             cmd_fmt.append("--prepasses="+','.join(preextras))
+
+        excludeextras = []
+
+        if space_around_exclamation_mark:
+            excludeextras.append("SpaceAroundExclamationMark")
+
+        if len(excludeextras) > 0:
+            cmd_fmt.append("--exclude="+','.join(excludeextras))
 
         cmd_fmt.append(uri)
 
@@ -402,6 +411,7 @@ def doreordermethod(eself, eview):
     comment_auto_align = s.get("comment_auto_align", False)
     typehint_auto_align = s.get("typehint_auto_align", False)
     additional_extensions = s.get("additional_extensions", [])
+    space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -780,6 +790,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "save_before_format_now":"save before 'format now'",
             "short_array":"short array",
             "smart_linebreak_after_curly":"smart linebreak after curly",
+            "space_around_exclamation_mark":"space around exclamation mark",
             "strip_extra_comma_in_array":"strip extra comma in array",
             "vet":"vet",
             "visibility_order":"visibility order",
