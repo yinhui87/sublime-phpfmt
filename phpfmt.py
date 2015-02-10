@@ -45,6 +45,7 @@ def dofmt(eself, eview, sgter = None):
     additional_extensions = s.get("additional_extensions", [])
     wordwrap = s.get("wordwrap", [])
     space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
+    upgrade_to_preg = s.get("upgrade_to_preg", False)
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -201,6 +202,9 @@ def dofmt(eself, eview, sgter = None):
 
         if wordwrap:
             extras.append("WordWrap")
+
+        if upgrade_to_preg:
+            extras.append("UpgradeToPreg")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
@@ -797,6 +801,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "wordwrap":"wordwrap (80 columns)",
             "wrong_constructor_name":"update old style constructor",
             "yoda":"yoda mode",
+            "upgrade_to_preg":"regex call upgrade to preg_*",
         }
         s = sublime.load_settings('phpfmt.sublime-settings')
         value = s.get(option, False)
