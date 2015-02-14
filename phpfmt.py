@@ -46,6 +46,7 @@ def dofmt(eself, eview, sgter = None):
     wordwrap = s.get("wordwrap", [])
     space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
     upgrade_to_preg = s.get("upgrade_to_preg", False)
+    restore_comments = s.get("restore_comments", False)
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -205,6 +206,9 @@ def dofmt(eself, eview, sgter = None):
 
         if upgrade_to_preg:
             extras.append("UpgradeToPreg")
+
+        if restore_comments:
+            extras.append("RestoreComments")
 
         if len(extras) > 0:
             cmd_fmt.append("--passes="+','.join(extras))
