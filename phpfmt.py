@@ -9,44 +9,103 @@ import time
 import csv
 from os.path import dirname, realpath
 
+passesOptions = {
+    "AddMissingParentheses":{
+        "description": "add missing parentheses",
+        "oldName":"add_missing_parentheses",
+    },
+    "AlignDoubleSlashComments":{
+        "description": "comments auto align",
+        "oldName":"comment_auto_align",
+    },
+    "AlignTypehint":{
+        "description": "typehint auto align",
+        "oldName":"typehint_auto_align",
+    },
+    "AutoPreincrement":{
+        "description": "automatic preincrement",
+        "oldName":"autopreincrement",
+    },
+    "EncapsulateNamespaces":{
+        "description": "automatic namespace encapsulation",
+        "oldName":"encapsulate_namespaces",
+    },
+    "JoinToImplode":{
+        "description": "replace join() to implode()",
+        "oldName":"join_to_implode",
+    },
+    "MergeElseIf":{
+        "description": "merge else if into elseif",
+        "oldName":"merge_else_if",
+    },
+    "PrettyPrintDocBlocks":{
+        "description": "doc block beautifier",
+        "oldName":"pretty_print_doc_blocks",
+    },
+    "PSR2LnAfterNamespace":{
+        "description": "automatic linebreak after namespace",
+        "oldName":"linebreak_after_namespace",
+    },
+    "RemoveUseLeadingSlash":{
+        "description": "remove_leading_slash",
+        "oldName":"remove_leading_slash",
+    },
+    "RestoreComments":{
+        "description": "skipping comment formatting",
+        "oldName":"restore_comments",
+    },
+    "ReturnNull":{
+        "description": "remove empty returns",
+        "oldName":"remove_return_empty",
+    },
+    "ShortArray":{
+        "description": "short array",
+        "oldName":"short_array",
+    },
+    "SpaceBetweenMethods":{
+        "description": "automatic linebreak between methods",
+        "oldName":"linebreak_between_methods"
+    },
+    "StripExtraCommaInArray":{
+        "description": "strip extra comma in array",
+        "oldName":"strip_extra_comma_in_array",
+    },
+    "UpgradeToPreg":{
+        "description": "regex call upgrade to preg_*",
+        "oldName":"upgrade_to_preg",
+    },
+    "WordWrap":{
+        "description": "wordwrap (80 columns)",
+        "oldName":"wordwrap",
+    },
+    "WrongConstructorName":{
+        "description": "update old style constructor",
+        "oldName":"wrong_constructor_name",
+    },
+}
 def dofmt(eself, eview, sgter = None):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
+
+    additional_extensions = s.get("additional_extensions", [])
+    autoimport = s.get("autoimport", True)
+    cakephp_style = s.get("cakephp_style", False)
     debug = s.get("debug", False)
+    enable_auto_align = s.get("enable_auto_align", False)
+    ignore_list = s.get("ignore_list", "")
+    indent_with_space = s.get("indent_with_space", False)
+    laravel_style = s.get("laravel_style", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
-    indent_with_space = s.get("indent_with_space", False)
-    enable_auto_align = s.get("enable_auto_align", False)
-    visibility_order = s.get("visibility_order", False)
-    autoimport = s.get("autoimport", True)
-    short_array = s.get("short_array", False)
-    merge_else_if = s.get("merge_else_if", False)
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
-    yoda = s.get("yoda", False)
-    autopreincrement = s.get("autopreincrement", False)
-    remove_leading_slash = s.get("remove_leading_slash", False)
-    linebreak_after_namespace = s.get("linebreak_after_namespace", False)
-    linebreak_between_methods = s.get("linebreak_between_methods", False)
-    remove_return_empty = s.get("remove_return_empty", False)
-    add_missing_parentheses = s.get("add_missing_parentheses", False)
-    wrong_constructor_name = s.get("wrong_constructor_name", False)
-    join_to_implode = s.get("join_to_implode", False)
-    encapsulate_namespaces = s.get("encapsulate_namespaces", False)
-    ignore_list = s.get("ignore_list", "")
-    laravel_style = s.get("laravel_style", False)
-    cakephp_style = s.get("cakephp_style", False)
-    strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
-    pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
-    comment_auto_align = s.get("comment_auto_align", False)
-    typehint_auto_align = s.get("typehint_auto_align", False)
-    additional_extensions = s.get("additional_extensions", [])
-    wordwrap = s.get("wordwrap", [])
     space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
-    upgrade_to_preg = s.get("upgrade_to_preg", False)
-    restore_comments = s.get("restore_comments", False)
+    visibility_order = s.get("visibility_order", False)
+    yoda = s.get("yoda", False)
+
+    passes = s.get("passes", [])
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -68,7 +127,7 @@ def dofmt(eself, eview, sgter = None):
             if -1 != pos:
                 if debug:
                     print("phpfmt: skipping file")
-                return False;
+                return False
 
     if not os.path.isfile(php_bin) and not php_bin == "php":
         print("Can't find PHP binary file at "+php_bin)
@@ -169,68 +228,8 @@ def dofmt(eself, eview, sgter = None):
         if autoimport is True and oracleFname is not None:
             cmd_fmt.append("--oracleDB="+oracleFname)
 
-
-        extras = []
-        if short_array:
-            extras.append("ShortArray")
-
-        if merge_else_if:
-            extras.append("MergeElseIf")
-
-        if autopreincrement:
-            extras.append("AutoPreincrement")
-
-        if remove_leading_slash:
-            extras.append("RemoveUseLeadingSlash")
-
-        if linebreak_after_namespace:
-            extras.append("PSR2LnAfterNamespace")
-
-        if wrong_constructor_name:
-            extras.append("WrongConstructorName")
-
-        if join_to_implode:
-            extras.append("JoinToImplode")
-
-        if strip_extra_comma_in_array:
-            extras.append("StripExtraCommaInArray")
-
-        if typehint_auto_align:
-            extras.append("AlignTypehint")
-
-        if comment_auto_align:
-            extras.append("AlignDoubleSlashComments")
-
-        if wordwrap:
-            extras.append("WordWrap")
-
-        if upgrade_to_preg:
-            extras.append("UpgradeToPreg")
-
-        if restore_comments:
-            extras.append("RestoreComments")
-
-        if len(extras) > 0:
-            cmd_fmt.append("--passes="+','.join(extras))
-
-        preextras = []
-        if pretty_print_doc_blocks:
-            preextras.append("PrettyPrintDocBlocks")
-
-        if encapsulate_namespaces:
-            preextras.append("EncapsulateNamespaces")
-
-        if linebreak_between_methods:
-            preextras.append("SpaceBetweenMethods")
-
-        if remove_return_empty:
-            preextras.append("ReturnNull")
-
-        if add_missing_parentheses:
-            preextras.append("AddMissingParentheses")
-
-        if len(preextras) > 0:
-            cmd_fmt.append("--prepasses="+','.join(preextras))
+        if len(passes) > 0:
+            cmd_fmt.append("--passes="+','.join(passes))
 
         excludeextras = []
 
@@ -269,24 +268,25 @@ def dogeneratephpdoc(eself, eview):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
+
+    additional_extensions = s.get("additional_extensions", [])
+    autoimport = s.get("autoimport", True)
+    cakephp_style = s.get("cakephp_style", False)
     debug = s.get("debug", False)
+    enable_auto_align = s.get("enable_auto_align", False)
+    ignore_list = s.get("ignore_list", "")
+    indent_with_space = s.get("indent_with_space", False)
+    laravel_style = s.get("laravel_style", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
-    indent_with_space = s.get("indent_with_space", False)
-    enable_auto_align = s.get("enable_auto_align", False)
+    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
+    space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
     visibility_order = s.get("visibility_order", False)
-    autoimport = s.get("autoimport", True)
-    short_array = s.get("short_array", False)
-    merge_else_if = s.get("merge_else_if", False)
-    php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
-    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
-    laravel_style = s.get("laravel_style", False)
-    cakephp_style = s.get("cakephp_style", False)
-    strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
-    additional_extensions = s.get("additional_extensions", [])
+    yoda = s.get("yoda", False)
+
+    passes = s.get("passes", [])
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -360,20 +360,9 @@ def dogeneratephpdoc(eself, eview):
         if cakephp_style:
             cmd_fmt.append("--cakephp")
 
-        extras = []
-        if short_array:
-            extras.append("ShortArray")
-
-        if merge_else_if:
-            extras.append("MergeElseIf")
-
-        if strip_extra_comma_in_array:
-            extras.append("StripExtraCommaInArray")
-
-        if len(extras) > 0:
-            cmd_fmt.append("--passes="+','.join(extras))
-
-        cmd_fmt.append("--prepasses=GeneratePHPDoc")
+        passes.append("GeneratePHPDoc")
+        if len(passes) > 0:
+            cmd_fmt.append("--passes="+','.join(passes))
 
         cmd_fmt.append(uri)
 
@@ -398,28 +387,25 @@ def doreordermethod(eself, eview):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
+
+    additional_extensions = s.get("additional_extensions", [])
+    autoimport = s.get("autoimport", True)
+    cakephp_style = s.get("cakephp_style", False)
     debug = s.get("debug", False)
+    enable_auto_align = s.get("enable_auto_align", False)
+    ignore_list = s.get("ignore_list", "")
+    indent_with_space = s.get("indent_with_space", False)
+    laravel_style = s.get("laravel_style", False)
     psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
-    indent_with_space = s.get("indent_with_space", False)
-    enable_auto_align = s.get("enable_auto_align", False)
-    visibility_order = s.get("visibility_order", False)
-    autoimport = s.get("autoimport", True)
-    short_array = s.get("short_array", False)
-    merge_else_if = s.get("merge_else_if", False)
-    php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
-    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
-    laravel_style = s.get("laravel_style", False)
-    cakephp_style = s.get("cakephp_style", False)
-    strip_extra_comma_in_array = s.get("strip_extra_comma_in_array", False)
-    pretty_print_doc_blocks = s.get("pretty_print_doc_blocks", False)
-    comment_auto_align = s.get("comment_auto_align", False)
-    typehint_auto_align = s.get("typehint_auto_align", False)
-    additional_extensions = s.get("additional_extensions", [])
+    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
     space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
+    visibility_order = s.get("visibility_order", False)
+    yoda = s.get("yoda", False)
+
+    passes = s.get("passes", [])
 
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
@@ -493,24 +479,9 @@ def doreordermethod(eself, eview):
         if cakephp_style:
             cmd_fmt.append("--cakephp")
 
-        extras = ['OrderMethod']
-        if short_array:
-            extras.append("ShortArray")
-
-        if merge_else_if:
-            extras.append("MergeElseIf")
-
-        if strip_extra_comma_in_array:
-            extras.append("StripExtraCommaInArray")
-
-        if typehint_auto_align:
-            extras.append("AlignTypehint")
-
-        if comment_auto_align:
-            extras.append("AlignDoubleSlashComments")
-
-        if len(extras) > 0:
-            cmd_fmt.append("--passes="+','.join(extras))
+        passes.append("OrderMethod")
+        if len(passes) > 0:
+            cmd_fmt.append("--passes="+','.join(passes))
 
         cmd_fmt.append(uri)
 
@@ -769,43 +740,45 @@ class FmtNowCommand(sublime_plugin.TextCommand):
 
         dofmt(self, self.view)
 
+class TogglePassCommand(sublime_plugin.TextCommand):
+    def run(self, edit, option):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        passes = s.get('passes', [])
+
+        if option in passes:
+            passes.remove(option)
+            msg = "phpfmt: "+passesOptions[option]['description']+" disabled"
+            print(msg)
+            sublime.status_message(msg)
+        else:
+            passes.append(option)
+            msg = "phpfmt: "+passesOptions[option]['description']+" enabled"
+            print(msg)
+            sublime.status_message(msg)
+
+        s.set('passes', passes)
+        sublime.save_settings('phpfmt.sublime-settings')
+
 class ToggleCommand(sublime_plugin.TextCommand):
     def run(self, edit, option):
         s = sublime.load_settings('phpfmt.sublime-settings')
         options = {
-            "add_missing_parentheses":"add missing parentheses",
             "autocomplete":"autocomplete",
             "autoimport":"dependency autoimport",
-            "autopreincrement":"automatic preincrement",
             "cakephp_style":"CakePHP style",
-            "comment_auto_align":"comments auto align",
-            "typehint_auto_align":"typehint auto align",
             "enable_auto_align":"auto align",
-            "encapsulate_namespaces":"automatic namespace encapsulation",
             "format_on_save":"format on save",
             "indent_with_space":"indent with space",
-            "join_to_implode":"replace join() to implode()",
             "laravel_style":"Laravel style",
-            "linebreak_after_namespace":"automatic linebreak after namespace",
-            "linebreak_between_methods":"automatic linebreak between methods",
-            "merge_else_if":"merge else if into elseif",
-            "pretty_print_doc_blocks":"doc block beautifier",
             "psr1":"PSR1",
             "psr1_naming":"PSR1 Class and Method Naming",
             "psr2":"PSR2",
-            "remove_leading_slash":"remove_leading_slash",
-            "remove_return_empty":"remove empty returns",
             "save_before_format_now":"save before 'format now'",
-            "short_array":"short array",
             "smart_linebreak_after_curly":"smart linebreak after curly",
             "space_around_exclamation_mark":"space around exclamation mark",
-            "strip_extra_comma_in_array":"strip extra comma in array",
             "vet":"vet",
             "visibility_order":"visibility order",
-            "wordwrap":"wordwrap (80 columns)",
-            "wrong_constructor_name":"update old style constructor",
             "yoda":"yoda mode",
-            "upgrade_to_preg":"regex call upgrade to preg_*",
         }
         s = sublime.load_settings('phpfmt.sublime-settings')
         value = s.get(option, False)
@@ -1078,11 +1051,24 @@ class PHPFmtComplete(sublime_plugin.EventListener):
 
         return comps
 
-# Preparing for sublime-phpfmt 2 upgrade
 s = sublime.load_settings('phpfmt.sublime-settings')
 version = s.get('version', 1)
 s.set('version', version)
 sublime.save_settings('phpfmt.sublime-settings')
+
+if version == 1:
+    # Convert to version 2
+    print("Convert to version 2")
+    passes = []
+    for (name, info) in passesOptions.items():
+        active = s.get(info["oldName"], False)
+        if active:
+            passes.append(name)
+        s.erase(info["oldName"])
+    s.erase('psr1_and_2')
+    s.set('passes', passes)
+    s.set('version', 2)
+    sublime.save_settings('phpfmt.sublime-settings')
 
 def _ct_poller():
     s = sublime.load_settings('phpfmt.sublime-settings')
