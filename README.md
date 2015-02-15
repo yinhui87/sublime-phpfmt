@@ -256,3 +256,7 @@ Prefer using the toggle options at command palette. However you might find yours
 
 ### Troubleshooting
 - Be sure you can run PHP from the command line.
+
+### Acknowledgements
+- GoSublime - for the method to update the formatted buffer
+- Google's diff match patch - http://code.google.com/p/google-diff-match-patch/

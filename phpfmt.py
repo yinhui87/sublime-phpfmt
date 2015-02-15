@@ -7,7 +7,16 @@ import sublime_plugin
 import subprocess
 import time
 import csv
+import sys
 from os.path import dirname, realpath
+
+dist_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, dist_dir)
+if int(sublime.version()) >= 3000:
+    from diff_match_patch.python3.diff_match_patch import diff_match_patch
+else:
+    from diff_match_patch.python2.diff_match_patch import diff_match_patch
+
 
 passesOptions = {
     "AddMissingParentheses":{
@@ -239,9 +248,10 @@ def dofmt(eself, eview, sgter = None):
         if len(excludeextras) > 0:
             cmd_fmt.append("--exclude="+','.join(excludeextras))
 
-        cmd_fmt.append(uri)
+        if sgter is None:
+            cmd_fmt.append("-o=-")
 
-        uri_tmp = uri + "~"
+        cmd_fmt.append(uri)
 
         if debug:
             print("cmd_fmt: ", cmd_fmt)
@@ -255,9 +265,13 @@ def dofmt(eself, eview, sgter = None):
         res, err = p.communicate()
         if debug:
             print("err:\n", err.decode('utf-8'))
-        sublime.set_timeout(revert_active_window, 50)
-        time.sleep(1)
-        sublime.active_window().active_view().run_command("phpfmt_vet")
+
+        if sgter is not None:
+            sublime.set_timeout(revert_active_window, 50)
+            time.sleep(1)
+            sublime.active_window().active_view().run_command("phpfmt_vet")
+
+        return res.decode('utf-8')
     else:
         sublime.status_message("phpfmt: format failed - syntax errors found")
         if debug:
@@ -627,7 +641,7 @@ class phpfmt(sublime_plugin.EventListener):
         s = sublime.load_settings('phpfmt.sublime-settings')
         format_on_save = s.get("format_on_save", True)
         if format_on_save:
-            dofmt(self, view)
+            view.run_command('php_fmt')
 
 class AnalyseThisCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -738,7 +752,7 @@ class FmtNowCommand(sublime_plugin.TextCommand):
         if save_before_format_now:
             sublime.active_window().active_view().run_command("save")
 
-        dofmt(self, self.view)
+        self.view.run_command('php_fmt')
 
 class TogglePassCommand(sublime_plugin.TextCommand):
     def run(self, edit, option):
@@ -1081,3 +1095,76 @@ def _ct_poller():
         sublime.set_timeout(_ct_poller, 5000)
 
 _ct_poller()
+
+
+class PhpFmtCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        vsize = self.view.size()
+        src = self.view.substr(sublime.Region(0, vsize))
+        if not src.strip():
+            return
+
+        src = dofmt(self, self.view)
+        if src is False or src == "":
+            print("oops")
+            return False
+
+        _, err = merge(self.view, vsize, src, edit)
+        print(err)
+
+class MergeException(Exception):
+    pass
+
+def _merge(view, size, text, edit):
+    def ss(start, end):
+        return view.substr(sublime.Region(start, end))
+    dmp = diff_match_patch()
+    diffs = dmp.diff_main(ss(0, size), text)
+    dmp.diff_cleanupEfficiency(diffs)
+    i = 0
+    dirty = False
+    for d in diffs:
+        k, s = d
+        l = len(s)
+        if k == 0:
+            # match
+            l = len(s)
+            if ss(i, i+l) != s:
+                raise MergeException('mismatch', dirty)
+            i += l
+        else:
+            dirty = True
+            if k > 0:
+                # insert
+                view.insert(edit, i, s)
+                i += l
+            else:
+                # delete
+                if ss(i, i+l) != s:
+                    raise MergeException('mismatch', dirty)
+                view.erase(edit, sublime.Region(i, i+l))
+    return dirty
+
+def merge(view, size, text, edit):
+    vs = view.settings()
+    ttts = vs.get("translate_tabs_to_spaces")
+    vs.set("translate_tabs_to_spaces", False)
+    origin_src = view.substr(sublime.Region(0, view.size()))
+    if not origin_src.strip():
+        return (False, '')
+
+    try:
+        dirty = False
+        err = ''
+        if size < 0:
+            size = view.size()
+        dirty = _merge(view, size, text, edit)
+    except MergeException as ex:
+        dirty = True
+        err = "Could not merge changes into the buffer, edit aborted: %s" % ex[0]
+        view.replace(edit, sublime.Region(0, view.size()), origin_src)
+    except Exception as ex:
+        err = "error: %s" % ex
+    finally:
+        vs.set("translate_tabs_to_spaces", ttts)
+        return (dirty, err)
