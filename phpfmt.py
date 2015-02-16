@@ -92,7 +92,7 @@ passesOptions = {
         "oldName":"wrong_constructor_name",
     },
 }
-def dofmt(eself, eview, sgter = None):
+def dofmt(eself, eview, sgter = None, src = None):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
@@ -251,17 +251,32 @@ def dofmt(eself, eview, sgter = None):
         if sgter is None:
             cmd_fmt.append("-o=-")
 
-        cmd_fmt.append(uri)
+        if src is None:
+            cmd_fmt.append(uri)
+        else:
+            cmd_fmt.append("-")
 
         if debug:
             print("cmd_fmt: ", cmd_fmt)
 
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+        if src is None:
+            if os.name == 'nt':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+            else:
+                p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         else:
-            p = subprocess.Popen(cmd_fmt, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+            if os.name == 'nt':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+            else:
+                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+
+        if src is not None:
+            p.stdin.write(src.encode('utf-8'))
+
         res, err = p.communicate()
         if debug:
             print("err:\n", err.decode('utf-8'))
@@ -630,16 +645,10 @@ def hidePanel(name, eself, eedit):
         eself.view.window().run_command("hide_panel", {"panel": "output."+name})
 
 class phpfmt(sublime_plugin.EventListener):
-    def on_post_save(self, view):
+    def on_pre_save(self, view):
         s = sublime.load_settings('phpfmt.sublime-settings')
         format_on_save = s.get("format_on_save", True)
 
-        if format_on_save and int(sublime.version()) < 3000:
-            self.on_post_save_async(view)
-
-    def on_post_save_async(self, view):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        format_on_save = s.get("format_on_save", True)
         if format_on_save:
             view.run_command('php_fmt')
 
@@ -1104,7 +1113,7 @@ class PhpFmtCommand(sublime_plugin.TextCommand):
         if not src.strip():
             return
 
-        src = dofmt(self, self.view)
+        src = dofmt(self, self.view, None, src)
         if src is False or src == "":
             print("oops")
             return False
