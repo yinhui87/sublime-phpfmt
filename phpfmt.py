@@ -455,6 +455,10 @@ def doreordermethod(eself, eview):
 
     passes = s.get("passes", [])
 
+    php_bin = s.get("php_bin", "php")
+    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+    config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
+
     uri = view.file_name()
     dirnm, sfn = os.path.split(uri)
     ext = os.path.splitext(uri)[1][1:]
