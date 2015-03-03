@@ -578,6 +578,7 @@ class ClassParser extends Parser {
 			list($id, $text) = $this->getToken($token);
 			$this->ptr = $index;
 			switch ($id) {
+				case T_INTERFACE:
 				case T_CLASS:
 					if ($this->leftUsefulTokenIs(T_DOUBLE_COLON)) {
 						continue;
@@ -676,7 +677,7 @@ class ClassMethodParser extends Parser {
 					if ("__construct" == $functionName) {
 						$functionName = $className;
 						$functionCall = $className;
-						$functionSignature = $className;
+						$functionSignature = $className . '(';
 					} else {
 						$functionCall = $functionName . $foundText;
 						$functionSignature = $functionName . $foundText;
@@ -710,6 +711,52 @@ class ClassMethodParser extends Parser {
 		return $methodList;
 	}
 
+};
+class ClassInstantiationsParser extends Parser {
+	public function parse($source) {
+		$uses = [];
+		$this->tkns = token_get_all($source);
+		$this->code = '';
+		$namespace = $this->detectsNamespace();
+		reset($this->tkns);
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->getToken($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case T_USE:
+					if ($this->rightUsefulTokenIs('(')) {
+						continue;
+					}
+					list($class, $id) = $this->accumulateAndStopAtAny($this->tkns, [T_AS, ';'], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT]);
+					if (';' == $id) {
+						$alias = substr(strrchr($class, '\\'), 1);
+						$uses[$alias] = $class;
+					} elseif (T_AS == $id) {
+						list($alias) = $this->accumulateAndStopAtAny($this->tkns, [';'], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT]);
+						$uses[$alias] = $class;
+					}
+			}
+		}
+
+		reset($this->tkns);
+		$used = [];
+		while (list($index, $token) = each($this->tkns)) {
+			list($id, $text) = $this->getToken($token);
+			$this->ptr = $index;
+			switch ($id) {
+				case T_NEW:
+					if ($this->rightUsefulTokenIs(T_NS_SEPARATOR)) {
+						// TODO! Analyse FQNs
+						continue;
+					}
+					list($called) = $this->accumulateAndStopAtAny($this->tkns, ['('], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT]);
+					if (isset($uses[$called])) {
+						$used[$called] = $uses[$called];
+					}
+			}
+		}
+		return array_flip($used);
+	}
 };
 
 function flushDb($uri, $fnDb, $ignoreList) {
@@ -749,6 +796,12 @@ function flushDb($uri, $fnDb, $ignoreList) {
 			method_signature text
 		);'
 	);
+	$db->exec(
+		'CREATE TABLE calls (
+			filename text,
+			called text
+		);'
+	);
 
 	fwrite(STDERR, "Database not found... generating" . PHP_EOL);
 	$debug = false;
@@ -778,6 +831,19 @@ function flushDb($uri, $fnDb, $ignoreList) {
 		try {
 			list($class, $extends, $implements) = (new ClassParser($file, $debug))->parse($content);
 			$methods = (new ClassMethodParser($file, $debug))->parse($content);
+			$calls = (new ClassInstantiationsParser($file, $debug))->parse($content);
+
+			foreach ($calls as $class_name => $class_alias) {
+				$db->exec('
+					INSERT INTO
+						calls
+					VALUES
+						(
+							"' . SQLite3::escapeString($file) . '",
+							"' . SQLite3::escapeString($class_name) . '"
+						);
+				');
+			}
 
 			foreach ($class as $class_name => $class_data) {
 				foreach ($class_data as $data) {
@@ -952,6 +1018,30 @@ if ("class" == $cmd) {
 	introspectClass($found_classes);
 }
 
+function introspectCall(&$found_calls) {
+	foreach ($found_calls as $row) {
+		echo "\t ", $row['filename'], ' called ', $row['called'], PHP_EOL;
+	}
+	echo PHP_EOL;
+}
+if ("calls" == $cmd) {
+	$results = $db->query("SELECT * FROM calls WHERE called LIKE '%" . SQLite3::escapeString($argv[2]) . "'");
+	$found_calls = [];
+	while ($row = $results->fetchArray()) {
+		$found_calls[] = [
+			'filename' => $row['filename'],
+			'called' => $row['called'],
+		];
+	}
+
+	if (empty($found_calls)) {
+		fwrite(STDERR, "Call not found: " . $argv[2] . PHP_EOL);
+		exit(255);
+	}
+
+	echo $argv[2], PHP_EOL;
+	introspectCall($found_calls);
+}
 if ("introspect" == $cmd) {
 	$target = $argv[2];
 
@@ -1004,6 +1094,17 @@ if ("introspect" == $cmd) {
 	if ($foundMethod) {
 		echo "Methods", PHP_EOL, $methodOutput;
 	}
+
+	$results = $db->query("SELECT * FROM calls WHERE called LIKE '%" . SQLite3::escapeString($target) . "'");
+	$found_calls = [];
+	while ($row = $results->fetchArray()) {
+		$found_calls[] = [
+			'filename' => $row['filename'],
+			'called' => $row['called'],
+		];
+	}
+	echo PHP_EOL, "Calls " . PHP_EOL;
+	introspectCall($found_calls);
 }
 
 if ("calltip" == $cmd) {
