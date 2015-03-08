@@ -91,6 +91,10 @@ passesOptions = {
         "description": "update old style constructor",
         "oldName":"wrong_constructor_name",
     },
+    "ReplaceIsNull":{
+        "description": "replace 'is_null' with 'null ==='",
+        "oldName":"replace_is_null",
+    }
 }
 def dofmt(eself, eview, sgter = None, src = None):
     self = eself
