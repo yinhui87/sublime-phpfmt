@@ -96,7 +96,7 @@ passesOptions = {
         "oldName":"replace_is_null",
     }
 }
-def dofmt(eself, eview, sgter = None, src = None):
+def dofmt(eself, eview, sgter = None, src = None, force = False):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
@@ -124,14 +124,17 @@ def dofmt(eself, eview, sgter = None, src = None):
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
-    uri = view.file_name()
-    dirnm, sfn = os.path.split(uri)
-    ext = os.path.splitext(uri)[1][1:]
+    dirnm = ""
+    uri = ""
+    if force is False:
+        uri = view.file_name()
+        dirnm, sfn = os.path.split(uri)
+        ext = os.path.splitext(uri)[1][1:]
 
-    if "php" != ext and not ext in additional_extensions:
-        if debug:
-            print("phpfmt: not a PHP file")
-        return False
+        if "php" != ext and not ext in additional_extensions:
+            if debug:
+                print("phpfmt: not a PHP file")
+            return False
 
     if "" != ignore_list:
         ignore_list = ignore_list.split(" ")
@@ -148,33 +151,36 @@ def dofmt(eself, eview, sgter = None, src = None):
             sublime.error_message("Can't find PHP binary file at "+php_bin)
 
     # Look for oracle.sqlite
-    oracleDirNm = dirnm
-    while oracleDirNm != "/":
-        oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
-        if os.path.isfile(oracleFname):
-            break
-        origOracleDirNm = oracleDirNm
-        oracleDirNm = os.path.dirname(oracleDirNm)
-        if origOracleDirNm == oracleDirNm:
-            break
+    if dirnm != "":
+        oracleDirNm = dirnm
+        while oracleDirNm != "/":
+            oracleFname = oracleDirNm+os.path.sep+"oracle.sqlite"
+            if os.path.isfile(oracleFname):
+                break
+            origOracleDirNm = oracleDirNm
+            oracleDirNm = os.path.dirname(oracleDirNm)
+            if origOracleDirNm == oracleDirNm:
+                break
 
-    if not os.path.isfile(oracleFname):
-        if debug:
-            print("phpfmt (oracle file): not found")
-        oracleFname = None
+        if not os.path.isfile(oracleFname):
+            if debug:
+                print("phpfmt (oracle file): not found")
+            oracleFname = None
+        else:
+            if debug:
+                print("phpfmt (oracle file): "+oracleFname)
     else:
-        if debug:
-            print("phpfmt (oracle file): "+oracleFname)
+        oracleFname = None
 
     if debug:
-        print("phpfmt:", uri)
+        # print("phpfmt:", uri)
         cmd_ver = [php_bin,"-v"];
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
         else:
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         res, err = p.communicate()
         print("phpfmt (php version) out:\n", res.decode('utf-8'))
         print("phpfmt (php version) err:\n", err.decode('utf-8'))
@@ -192,9 +198,9 @@ def dofmt(eself, eview, sgter = None, src = None):
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+            p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
         else:
-            p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+            p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         p.stdin.write(src.encode('utf-8'))
 
     lint_out, lint_err = p.communicate()
@@ -285,9 +291,9 @@ def dofmt(eself, eview, sgter = None, src = None):
             if os.name == 'nt':
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
             else:
-                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+                p = subprocess.Popen(cmd_fmt, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
         if src is not None:
             p.stdin.write(src.encode('utf-8'))
@@ -783,12 +789,17 @@ class CalltipCommand(sublime_plugin.TextCommand):
 
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        save_before_format_now = s.get('save_before_format_now', False)
-        if save_before_format_now:
-            sublime.active_window().active_view().run_command("save")
+        vsize = self.view.size()
+        src = self.view.substr(sublime.Region(0, vsize))
+        if not src.strip():
+            return
 
-        self.view.run_command('php_fmt')
+        src = dofmt(self, self.view, None, src, True)
+        if src is False or src == "":
+            return False
+
+        _, err = merge(self.view, vsize, src, edit)
+        print(err)
 
 class TogglePassCommand(sublime_plugin.TextCommand):
     def run(self, edit, option):
