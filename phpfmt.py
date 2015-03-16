@@ -94,6 +94,10 @@ passesOptions = {
     "ReplaceIsNull":{
         "description": "replace 'is_null' with 'null ==='",
         "oldName":"replace_is_null",
+    },
+    "DoubleToSingleQuote":{
+        "description": "replace double quotes with single quotes",
+        "oldName":"double_to_single_quote",
     }
 }
 def dofmt(eself, eview, sgter = None, src = None, force = False):
