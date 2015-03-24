@@ -13,6 +13,7 @@
     {"caption": "phpfmt: toggle doc block beautifier", "command": "toggle_pass", "args": {"option":"PrettyPrintDocBlocks"}},
     {"caption": "phpfmt: toggle double to single quote converter", "command": "toggle_pass", "args": {"option":"DoubleToSingleQuote"}},
     {"caption": "phpfmt: toggle format on save", "command": "toggle", "args": {"option":"format_on_save"}},
+    {"caption": "phpfmt: toggle indent multiline ternary comparisons", "command": "toggle_pass", "args": {"option":"IndentTernaryConditions"}},
     {"caption": "phpfmt: toggle indent with space", "command": "toggle", "args": {"option":"indent_with_space"}},
     {"caption": "phpfmt: toggle Laravel style (experimental)", "command": "toggle", "args": {"option":"laravel_style"}},
     {"caption": "phpfmt: toggle leading slash in use clauses", "command": "toggle_pass", "args": {"option":"RemoveUseLeadingSlash"}},

@@ -98,6 +98,10 @@ passesOptions = {
     "DoubleToSingleQuote":{
         "description": "replace double quotes with single quotes",
         "oldName":"double_to_single_quote",
+    },
+    "IndentTernaryConditions":{
+        "description": "indent multiline ternary comparisons",
+        "oldName":"indent_ternary_conditions",
     }
 }
 def dofmt(eself, eview, sgter = None, src = None, force = False):
