@@ -125,6 +125,7 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
     visibility_order = s.get("visibility_order", False)
     yoda = s.get("yoda", False)
+    readini = s.get("readini", False)
 
     passes = s.get("passes", [])
 
@@ -177,6 +178,22 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         else:
             if debug:
                 print("phpfmt (oracle file): "+oracleFname)
+
+        if readini:
+            iniDirNm = dirnm
+            while iniDirNm != "/":
+                iniFname = iniDirNm+os.path.sep+".php.tools.ini"
+                if os.path.isfile(iniFname):
+                    break
+                originiDirNm = iniDirNm
+                iniDirNm = os.path.dirname(iniDirNm)
+                if originiDirNm == iniDirNm:
+                    break
+
+            if os.path.isfile(iniFname):
+                if debug:
+                    print("phpfmt (ini file): "+iniFname)
+                config_file = iniFname
     else:
         oracleFname = None
 
@@ -276,6 +293,9 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
         if len(excludeextras) > 0:
             cmd_fmt.append("--exclude="+','.join(excludeextras))
+
+        if debug:
+            cmd_fmt.append("-v")
 
         if sgter is None:
             cmd_fmt.append("-o=-")
@@ -842,6 +862,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "psr1":"PSR1",
             "psr1_naming":"PSR1 Class and Method Naming",
             "psr2":"PSR2",
+            "readini":"look for .php.tools.ini",
             "save_before_format_now":"save before 'format now'",
             "smart_linebreak_after_curly":"smart linebreak after curly",
             "space_around_exclamation_mark":"space around exclamation mark",
