@@ -1,5 +1,6 @@
 [
     {"caption": "phpfmt: format now", "command": "fmt_now"},
+    {"caption": "phpfmt: disable space around exclamation mark - Laravel Only", "command": "toggle", "args": {"option":"space_around_exclamation_mark"}},
     {"caption": "phpfmt: toggle add missing parentheses for instantion calls", "command": "toggle_pass", "args": {"option":"AddMissingParentheses"}},
     {"caption": "phpfmt: toggle auto align", "command": "toggle", "args": {"option":"enable_auto_align"}},
     {"caption": "phpfmt: toggle auto align of comments", "command": "toggle_pass", "args": {"option":"AlignDoubleSlashComments"}},
@@ -31,7 +32,6 @@
     {"caption": "phpfmt: toggle replace is_null with null === ", "command": "toggle_pass", "args": {"option":"ReplaceIsNull"}},
     {"caption": "phpfmt: toggle save before 'format now'", "command": "toggle", "args": {"option":"save_before_format_now"}},
     {"caption": "phpfmt: toggle smart linebreak after open curly", "command": "toggle", "args": {"option":"smart_linebreak_after_curly"}},
-    {"caption": "phpfmt: toggle space around exclamation mark", "command": "toggle", "args": {"option":"space_around_exclamation_mark"}},
     {"caption": "phpfmt: toggle strip extra comma in array", "command": "toggle_pass", "args": {"option":"StripExtraCommaInArray"}},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle", "args": {"option":"visibility_order"}},
     {"caption": "phpfmt: toggle word wrap (80 columns)", "command": "toggle_pass", "args": {"option":"WordWrap"}},
