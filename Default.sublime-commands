@@ -35,6 +35,7 @@
     {"caption": "phpfmt: toggle strip extra comma in array", "command": "toggle_pass", "args": {"option":"StripExtraCommaInArray"}},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle", "args": {"option":"visibility_order"}},
     {"caption": "phpfmt: toggle word wrap (80 columns)", "command": "toggle_pass", "args": {"option":"WordWrap"}},
+    {"caption": "phpfmt: toggle word wrap (80 columns - left)", "command": "toggle_pass", "args": {"option":"LeftWordWrap"}},
     {"caption": "phpfmt: toggle yoda mode", "command": "toggle", "args": {"option":"yoda"}},
     {"caption": "phpfmt: analyse this", "command": "analyse_this"},
     {"caption": "phpfmt: build autocomplete database", "command": "build_oracle"},

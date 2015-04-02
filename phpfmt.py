@@ -87,6 +87,10 @@ passesOptions = {
         "description": "wordwrap (80 columns)",
         "oldName":"wordwrap",
     },
+    "LeftWordWrap":{
+        "description": "wordwrap (80 columns - left)",
+        "oldName":"left_wordwrap",
+    },
     "WrongConstructorName":{
         "description": "update old style constructor",
         "oldName":"wrong_constructor_name",
