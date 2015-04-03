@@ -106,6 +106,14 @@ passesOptions = {
     "IndentTernaryConditions":{
         "description": "indent multiline ternary comparisons",
         "oldName":"indent_ternary_conditions",
+    },
+    "ClassToSelf":{
+        "description": "rename class name to 'self'",
+        "oldName":"class_to_self",
+    },
+    "ClassToStatic":{
+        "description": "rename class name to 'static'",
+        "oldName":"class_to_static",
     }
 }
 def dofmt(eself, eview, sgter = None, src = None, force = False):
