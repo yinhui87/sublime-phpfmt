@@ -140,6 +140,7 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     readini = s.get("readini", False)
 
     passes = s.get("passes", [])
+    excludes = s.get("excludes", [])
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
@@ -302,6 +303,9 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
             cmd_fmt.append("--passes="+','.join(passes))
 
         excludeextras = []
+
+        if len(excludes) > 0:
+            excludeextras = excludes
 
         if space_around_exclamation_mark:
             excludeextras.append("SpaceAroundExclamationMark")
