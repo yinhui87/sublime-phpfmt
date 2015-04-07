@@ -1232,7 +1232,7 @@ def _merge(view, size, text, edit):
     def ss(start, end):
         return view.substr(sublime.Region(start, end))
     dmp = diff_match_patch()
-    diffs = dmp.diff_main(ss(0, size), text)
+    diffs = dmp.diff_main(ss(0, size), text, False)
     dmp.diff_cleanupEfficiency(diffs)
     i = 0
     dirty = False
