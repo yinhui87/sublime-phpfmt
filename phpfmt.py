@@ -6,7 +6,6 @@ import sublime
 import sublime_plugin
 import subprocess
 import time
-import csv
 import sys
 from os.path import dirname, realpath
 
