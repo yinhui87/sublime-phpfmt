@@ -32,7 +32,6 @@
     {"caption": "phpfmt: toggle rename class name to 'static'", "command": "toggle_pass", "args": {"option":"ClassToStatic"}},
     {"caption": "phpfmt: toggle replace join() with implode()", "command": "toggle_pass", "args": {"option":"JoinToImplode"}},
     {"caption": "phpfmt: toggle replace is_null with null === ", "command": "toggle_pass", "args": {"option":"ReplaceIsNull"}},
-    {"caption": "phpfmt: toggle save before 'format now'", "command": "toggle", "args": {"option":"save_before_format_now"}},
     {"caption": "phpfmt: toggle smart linebreak after open curly", "command": "toggle", "args": {"option":"smart_linebreak_after_curly"}},
     {"caption": "phpfmt: toggle strip extra comma in array", "command": "toggle_pass", "args": {"option":"StripExtraCommaInArray"}},
     {"caption": "phpfmt: toggle visibility order", "command": "toggle", "args": {"option":"visibility_order"}},

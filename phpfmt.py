@@ -882,7 +882,6 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "psr1_naming":"PSR1 Class and Method Naming",
             "psr2":"PSR2",
             "readini":"look for .php.tools.ini",
-            "save_before_format_now":"save before 'format now'",
             "smart_linebreak_after_curly":"smart linebreak after curly",
             "space_around_exclamation_mark":"space around exclamation mark",
             "vet":"vet",
