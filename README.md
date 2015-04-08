@@ -231,7 +231,7 @@ $d = new D();
 #### Requirements
 - **You must have a running copy of PHP on the machine you are running Sublime Text**
 
-Plugin runs better with PHP 5.5 or newer installed in the machine running the plugin. It works with PHP 5.4 if formatting only PHP 5.4 codes. *Do not attempt to format PHP 5.5 code with PHP 5.4 binary.*
+Plugin runs with PHP 5.5 or newer installed in the machine running the plugin.
 
 #### Install this plugin through Package Manager.
 
