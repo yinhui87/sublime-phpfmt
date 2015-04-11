@@ -1,4 +1,3 @@
-import csv
 import os
 import os.path
 import shutil
@@ -847,24 +846,93 @@ class FmtNowCommand(sublime_plugin.TextCommand):
         _, err = merge(self.view, vsize, src, edit)
         print(err)
 
-class TogglePassCommand(sublime_plugin.TextCommand):
-    def run(self, edit, option):
+class TogglePassMenuCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
-        passes = s.get('passes', [])
+        php_bin = s.get("php_bin", "php")
+        formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
-        if option in passes:
-            passes.remove(option)
-            msg = "phpfmt: "+passesOptions[option]['description']+" disabled"
-            print(msg)
-            sublime.status_message(msg)
+
+        cmd_passes = [php_bin,formatter_path,'--list-simple'];
+        print(cmd_passes)
+
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
         else:
-            passes.append(option)
-            msg = "phpfmt: "+passesOptions[option]['description']+" enabled"
-            print(msg)
-            sublime.status_message(msg)
+            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
 
-        s.set('passes', passes)
-        sublime.save_settings('phpfmt.sublime-settings')
+        out, err = p.communicate()
+
+        descriptions = out.decode("utf-8").strip().split(os.linesep)
+
+        def on_done(i):
+            if i >= 0 :
+                s = sublime.load_settings('phpfmt.sublime-settings')
+                passes = s.get('passes', [])
+                chosenPass = descriptions[i].split(' ')
+                option = chosenPass[0]
+
+                if option in passes:
+                    passes.remove(option)
+                    msg = "phpfmt: "+passesOptions[option]['description']+" disabled"
+                    print(msg)
+                    sublime.status_message(msg)
+                else:
+                    passes.append(option)
+                    msg = "phpfmt: "+passesOptions[option]['description']+" enabled"
+                    print(msg)
+                    sublime.status_message(msg)
+
+                s.set('passes', passes)
+                sublime.save_settings('phpfmt.sublime-settings')
+
+        self.view.window().show_quick_panel(descriptions, on_done, sublime.MONOSPACE_FONT)
+
+class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        php_bin = s.get("php_bin", "php")
+        formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+
+
+        cmd_passes = [php_bin,formatter_path,'--list-simple'];
+        print(cmd_passes)
+
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmd_passes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+
+        out, err = p.communicate()
+
+        descriptions = out.decode("utf-8").strip().split(os.linesep)
+
+        def on_done(i):
+            if i >= 0 :
+                s = sublime.load_settings('phpfmt.sublime-settings')
+                excludes = s.get('excludes', [])
+                chosenPass = descriptions[i].split(' ')
+                option = chosenPass[0]
+
+                if option in excludes:
+                    excludes.remove(option)
+                    msg = "phpfmt: "+passesOptions[option]['description']+" disabled"
+                    print(msg)
+                    sublime.status_message(msg)
+                else:
+                    excludes.append(option)
+                    msg = "phpfmt: "+passesOptions[option]['description']+" enabled"
+                    print(msg)
+                    sublime.status_message(msg)
+
+                s.set('excludes', excludes)
+                sublime.save_settings('phpfmt.sublime-settings')
+
+        self.view.window().show_quick_panel(descriptions, on_done, sublime.MONOSPACE_FONT)
 
 class ToggleCommand(sublime_plugin.TextCommand):
     def run(self, edit, option):
@@ -1177,6 +1245,11 @@ if version == 1:
     s.set('version', 2)
     sublime.save_settings('phpfmt.sublime-settings')
 
+if version == 2:
+    # Convert to version 3
+    print("Convert to version 3")
+    s.set('version', 3)
+    sublime.save_settings('phpfmt.sublime-settings')
 
 
 def selfupdate():
