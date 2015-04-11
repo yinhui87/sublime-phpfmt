@@ -132,6 +132,7 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
+    skip_if_ini_missing = s.get("skip_if_ini_missing", False)
     space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
     visibility_order = s.get("visibility_order", False)
     yoda = s.get("yoda", False)
@@ -205,6 +206,10 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
                 if debug:
                     print("phpfmt (ini file): "+iniFname)
                 config_file = iniFname
+            elif skip_if_ini_missing:
+                if debug:
+                    print("phpfmt (ini file): not found - skipping")
+                return False
     else:
         oracleFname = None
 
@@ -950,6 +955,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "psr2":"PSR2",
             "readini":"look for .php.tools.ini",
             "smart_linebreak_after_curly":"smart linebreak after curly",
+            "skip_if_ini_missing":"skip if ini file is missing",
             "space_around_exclamation_mark":"space around exclamation mark",
             "vet":"vet",
             "visibility_order":"visibility order",

@@ -1,8 +1,12 @@
 [
     {"caption": "phpfmt: format now", "command": "fmt_now"},
     {"caption": "phpfmt: disable space around exclamation mark - Laravel Only", "command": "toggle", "args": {"option":"space_around_exclamation_mark"}},
+
     {"caption": "phpfmt: toggle additional transformations", "command": "toggle_pass_menu" },
     {"caption": "phpfmt: toggle excluded transformations", "command": "toggle_exclude_menu" },
+
+    {"caption": "phpfmt: toggle skip execution when .php.tools.ini is missing", "command": "toggle", "args": {"option":"skip_if_ini_missing"}},
+
     {"caption": "phpfmt: toggle auto align", "command": "toggle", "args": {"option":"enable_auto_align"}},
     {"caption": "phpfmt: toggle autocomplete", "command": "toggle", "args": {"option":"autocomplete"}},
     {"caption": "phpfmt: toggle CakePHP style (experimental)", "command": "toggle", "args": {"option":"cakephp_style"}},
