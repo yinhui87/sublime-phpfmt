@@ -5,69 +5,78 @@ php.fmt, php.tools and php.oracle aim to help PHP development.
 
 **The following features are available through command palette (`ctrl+shift+P` or `cmd+shift+P`) :**
 
-
- *  phpfmt: toggle add missing parentheses for instantion calls
- *  phpfmt: toggle auto align - it aligns vertically equals and fat arrow symbols
- *  phpfmt: toggle auto align of comments
- *  phpfmt: toggle auto align of typehints
+ *  phpfmt: format now
+ *  phpfmt: disable space around exclamation mark - Laravel Only
+ *  phpfmt: toggle additional transformations
+ *  phpfmt: toggle exclude transformations
+ *  phpfmt: toggle skip execution when .php.tools.ini is missing
+ *  phpfmt: toggle auto align
  *  phpfmt: toggle autocomplete
- *  phpfmt: toggle automatic preincrement/predecrement - convert from `$a++` to `++$a`
- *  phpfmt: toggle automatic namespace encapsulation
  *  phpfmt: toggle CakePHP style (experimental)
- *  phpfmt: toggle convert long array into short array - `convert array(...) into [...] automatically`
  *  phpfmt: toggle dependency autoimport
- *  phpfmt: toggle doc block beautifier
- *  phpfmt: toggle format on save - handy if the code is small and you don't want to worry about formatting.
- *  phpfmt: toggle indent with space - for those who don't *like* indentation with tabs.
- *  phpfmt: toggle Laravel style (experimental)
- *  phpfmt: toggle leading slash in use clauses
- *  phpfmt: toggle linebreak after namespace
- *  phpfmt: toggle linebreak between methods
- *  phpfmt: toggle merge else+if into elseif - convert `...} else if (...` into `...} elseif( ...`
- *  phpfmt: toggle PSR1
+ *  phpfmt: toggle format on save
+ *  phpfmt: toggle indent with space
+ *  phpfmt: toggle Laravel style (deprecated)
+ *  phpfmt: toggle php.vet
  *  phpfmt: toggle PSR1 - Class and Methods names
+ *  phpfmt: toggle PSR1
  *  phpfmt: toggle PSR2
- *  phpfmt: toggle removal of empty returns ('return null;') - convert `return null;` to `return;`
- *  phpfmt: toggle replace join() with implode()
- *  phpfmt: toggle smart linebreak after open curly - when adding missing curly blocks in codes, it adds an extra line break after first added curly token. Thus:
-  <table>
-   <tr>
-     <td>before</td>
-     <td>with smart curly</td>
-     <td>without smart curly</td>
-   </tr>
-   <tr>
-     <td>
-       <pre>
-       if ($a) $b;
-       </pre>
-     </td>
-     <td>
-       <pre>
-       if ($a) {
-           $b;
-       }
-       </pre>
-     </td>
-     <td>
-       <pre>
-       if ($a) { $b;
-       }
-       </pre>
-     </td>
-    </tr>
-  </table>
- *  phpfmt: toggle space around exclamation mark - convert from `if ( ! $a)...` to `if (!$a)`
- *  phpfmt: toggle strip extra comma in array
- *  phpfmt: toggle visibility order - ensure PSR2 §4.2. `[final|static] [private|protected|public] [$variable|function]...`
- *  phpfmt: toggle word wrap (80 columns)
- *  phpfmt: toggle yoda mode - change automatically condition evaluations from `$a == CONST` to `CONST == $a`
- *  phpfmt: getter and setter (camelCase) - analyses the classes in the file and add setters/getters - setVariable()/getVariable()
- *  phpfmt: getter and setter (Go) - analyses the classes in the file and add setters/getters - SetVariable()/Variable()
- *  phpfmt: getter and setter (snake_case) - analyses the classes in the file and add setters/getters - set_variable()/get_variable()
+ *  phpfmt: toggle smart linebreak after open curly
+ *  phpfmt: toggle visibility order
+ *  phpfmt: toggle yoda mode
+ *  phpfmt: analyse this
+ *  phpfmt: build autocomplete database
+ *  phpfmt: getter and setter (camelCase)
+ *  phpfmt: getter and setter (Go)
+ *  phpfmt: getter and setter (snake_case)
  *  phpfmt: generate PHPDoc block
+ *  phpfmt: look for .php.tools.ini
  *  phpfmt: order method within classes
+ *  phpfmt: refactor
 
+
+### Currently Supported Transf: ormations:
+ * AddMissingParentheses      : Add extra parentheses in new instantiations.
+ * AliasToMaster              : Replace function aliases to their masters - only basic syntax alias.
+ * AlignDoubleArrow           : Vertically align T_DOUBLE_ARROW (=>).
+ * AlignDoubleSlashComments   : Vertically align "//" comments.
+ * AlignEquals                : Vertically align "=".
+ * AlignTypehint              : Vertically align "//" comments.
+ * AutoPreincrement           : Automatically convert postincrement to preincrement.
+ * CakePHPStyle               : Applies CakePHP Coding Style
+ * ClassToSelf                : "self" is preferred within class, trait or interface.
+ * ClassToStatic              : "static" is preferred within class, trait or interface.
+ * ConvertOpenTagWithEcho     : Convert from "<?=" to "<?php echo ".
+ * DocBlockToComment          : Replace docblocks with regular comments when used in non structural elements.
+ * DoubleToSingleQuote        : Convert from double to single quotes.
+ * EncapsulateNamespaces      : Encapsulate namespaces with curly braces
+ * GeneratePHPDoc             : Automatically generates PHPDoc blocks
+ * IndentTernaryConditions    : Applies indentation to ternary conditions.
+ * JoinToImplode              : Replace implode() alias (join() -> implode()).
+ * LeftWordWrap               : Word wrap at 80 columns - left justify.
+ * LongArray                  : Convert short to long arrays.
+ * MergeElseIf                : Merge if with else.
+ * MergeNamespaceWithOpenTag  : Ensure there is no more than one linebreak before namespace
+ * MildAutoPreincrement       : Automatically convert postincrement to preincrement.
+ * OrderMethod                : Sort methods within class in alphabetic order.
+ * PrettyPrintDocBlocks       : Prettify Doc Blocks
+ * PSR2EmptyFunction          : Merges in the same line of function header the body of empty functions.
+ * RemoveUseLeadingSlash      : Remove leading slash in T_USE imports.
+ * ReplaceIsNull              : Replace is_null($a) with null === $a.
+ * ReturnNull                 : Simplify empty returns.
+ * ShortArray                 : Convert old array into new array. (array() -> [])
+ * SmartLnAfterCurlyOpen      : Add line break when implicit curly block is added.
+ * SpaceBetweenMethods        : Put space between methods.
+ * StrictBehavior             : Activate strict option in array_search, base64_decode, in_array, array_keys, mb_detect_encoding. Danger! This pass leads to behavior change.
+ * StrictComparison           : All comparisons are converted to strict. Danger! This pass leads to behavior change.
+ * StripExtraCommaInArray     : Remove trailing commas within array blocks
+ * StripNewlineAfterClassOpen : Strip empty lines after class opening curly brace.
+ * StripNewlineAfterCurlyOpen : Strip empty lines after opening curly brace.
+ * TightConcat                : Ensure string concatenation does not have spaces, except when close to numbers.
+ * UpgradeToPreg              : Upgrade ereg_* calls to preg_*
+ * WordWrap                   : Word wrap at 80 columns.
+ * WrongConstructorName       : Update old constructor names into new ones. http://php.net/manual/en/language.oop5.decon.php
+ * YodaComparisons            : Execute Yoda Comparisons.
 
 ### What does it do?
 
@@ -256,6 +265,7 @@ Prefer using the toggle options at command palette. However you might find yours
 
 ### Troubleshooting
 - Be sure you can run PHP from the command line.
+- If you are a MAMP user, please use the MAMP's PHP binary to execute the plugin. This issue might be handy to help you configure the plugin: https://github.com/dericofilho/sublime-phpfmt/issues/109
 
 ### Acknowledgements
 - GoSublime - for the method to update the formatted buffer
