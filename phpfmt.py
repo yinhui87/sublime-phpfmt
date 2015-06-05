@@ -966,7 +966,6 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "cakephp_style":"CakePHP style",
             "enable_auto_align":"auto align",
             "format_on_save":"format on save",
-            "indent_with_space":"indent with space",
             "laravel_style":"Laravel style",
             "psr1":"PSR1",
             "psr1_naming":"PSR1 Class and Method Naming",
@@ -1156,7 +1155,26 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
             else:
                 sublime.set_timeout(buildDB, 50)
 
+class IndentWithSpacesCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        def setIndentWithSpace(text):
+            s = sublime.load_settings('phpfmt.sublime-settings')
+            v = text.strip()
+            if not v:
+                v = False
+            else:
+                v = int(v)
+            s.set("indent_with_space", v)
+            sublime.save_settings('phpfmt.sublime-settings')
+            sublime.status_message("phpfmt (indentation): done")
+            sublime.active_window().active_view().run_command("fmt_now")
 
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        spaces = s.get("indent_with_space", 4)
+        if not spaces:
+            spaces = ""
+        spaces = str(spaces)
+        self.view.window().show_input_panel('how many spaces? (leave it empty to return to tabs)', spaces, setIndentWithSpace, None, None)
 
 class PHPFmtComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
