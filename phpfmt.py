@@ -214,6 +214,22 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     else:
         oracleFname = None
 
+    cmd_ver = [php_bin, '-v'];
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+    else:
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    res, err = p.communicate()
+    print("phpfmt (php5.5) cmd:\n", cmd_ver)
+    print("phpfmt (php5.5) out:\n", res.decode('utf-8'))
+    print("phpfmt (php5.5) err:\n", err.decode('utf-8'))
+    if not s.get("php55warning", False) and 'PHP 5.5' in res.decode('utf-8') or 'PHP 5.5' in err.decode('utf-8'):
+        s.set("php55warning", True)
+        sublime.save_settings('phpfmt.sublime-settings')
+        sublime.message_dialog('Warning.\nPHP 5.5 is end-of-life by June 20th 2015. Please, upgrade your local PHP to PHP 5.6.')
+
     if debug:
         cmd_ver = [php_bin,"-v"];
         if os.name == 'nt':
