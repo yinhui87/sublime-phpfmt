@@ -8,7 +8,7 @@ php.fmt, php.tools and php.oracle aim to help PHP development.
 %CMD%
 
 
-### Currently Supported Transf: ormations:
+### Currently Supported Transformations:
 
 %PASSES%
 

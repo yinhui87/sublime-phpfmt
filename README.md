@@ -35,7 +35,7 @@ php.fmt, php.tools and php.oracle aim to help PHP development.
  *  phpfmt: refactor
 
 
-### Currently Supported Transf: ormations:
+### Currently Supported Transformations:
 
  * AddMissingParentheses             Add extra parentheses in new instantiations.
  * AliasToMaster                     Replace function aliases to their masters - only basic syntax alias.
