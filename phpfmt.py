@@ -159,10 +159,11 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
             return False
 
     if "" != ignore_list:
-        ignore_list = ignore_list.split(" ")
+        if type(ignore_list) is not list:
+            ignore_list = ignore_list.split(" ")
         for v in ignore_list:
             pos = uri.find(v)
-            if -1 != pos:
+            if -1 != pos and v != "":
                 if debug:
                     print("phpfmt: skipping file")
                 return False
