@@ -231,6 +231,15 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         sublime.save_settings('phpfmt.sublime-settings')
         sublime.message_dialog('Warning.\nPHP 5.5 is end-of-life by June 20th 2015. Please, upgrade your local PHP to PHP 5.6.')
 
+    if not s.get("laravel_deprecated_warning", False) and laravel_style == True:
+        s.set("laravel_deprecated_warning", True)
+        sublime.save_settings('phpfmt.sublime-settings')
+        sublime.message_dialog('Warning.\nLaravel-style is deprecated and will be removed in the next major release.\nPlease, consider using AllmanStyleBraces.')
+
+    if psr2 == True and laravel_style == True:
+        sublime.message_dialog('Warning.\nLaravel-style and PSR-2 are mutually exclusive.');
+        return False
+
     if debug:
         cmd_ver = [php_bin,"-v"];
         if os.name == 'nt':
