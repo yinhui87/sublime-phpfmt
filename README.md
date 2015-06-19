@@ -46,6 +46,7 @@ php.fmt, php.tools and php.oracle aim to help PHP development.
  * AlignTypehint                     Vertically align "//" comments.
  * AllmanStyleBraces                 Transform all curly braces into Allman-style.
  * AutoPreincrement                  Automatically convert postincrement to preincrement.
+ * AutoSemicolon                     Beta - Add semicolons in statements ends.
  * CakePHPStyle                      Applies CakePHP Coding Style
  * ClassToSelf                       "self" is preferred within class, trait or interface.
  * ClassToStatic                     "static" is preferred within class, trait or interface.
