@@ -262,27 +262,32 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         print("phpfmt (fmt.phar version) out:\n", res.decode('utf-8'))
         print("phpfmt (fmt.phar version) err:\n", err.decode('utf-8'))
 
-    cmd_lint = [php_bin,"-ddisplay_errors=1","-l"];
-    if src is None:
-        cmd_lint.append(uri)
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
+    lintret = 1
+    if "AutoSemicolon" in passes:
+        lintret = 0
     else:
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+        cmd_lint = [php_bin,"-ddisplay_errors=1","-l"];
+        if src is None:
+            cmd_lint.append(uri)
+            if os.name == 'nt':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False, startupinfo=startupinfo)
+            else:
+                p = subprocess.Popen(cmd_lint, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirnm, shell=False)
         else:
-            p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-        p.stdin.write(src.encode('utf-8'))
+            if os.name == 'nt':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+            else:
+                p = subprocess.Popen(cmd_lint, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+            p.stdin.write(src.encode('utf-8'))
 
-    lint_out, lint_err = p.communicate()
+        lint_out, lint_err = p.communicate()
+        lintret = p.returncode
 
-    if(p.returncode==0):
+    if(lintret==0):
         cmd_fmt = [php_bin]
 
         if not debug:
