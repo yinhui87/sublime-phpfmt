@@ -223,13 +223,12 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     else:
         p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
     res, err = p.communicate()
-    print("phpfmt (php5.5) cmd:\n", cmd_ver)
-    print("phpfmt (php5.5) out:\n", res.decode('utf-8'))
-    print("phpfmt (php5.5) err:\n", err.decode('utf-8'))
-    if not s.get("php55warning", False) and 'PHP 5.5' in res.decode('utf-8') or 'PHP 5.5' in err.decode('utf-8'):
-        s.set("php55warning", True)
-        sublime.save_settings('phpfmt.sublime-settings')
-        sublime.message_dialog('Warning.\nPHP 5.5 is end-of-life by June 20th 2015. Please, upgrade your local PHP to PHP 5.6.')
+    print("phpfmt (php_ver) cmd:\n", cmd_ver)
+    print("phpfmt (php_ver) out:\n", res.decode('utf-8'))
+    print("phpfmt (php_ver) err:\n", err.decode('utf-8'))
+    if 'PHP 5.3' in res.decode('utf-8') or 'PHP 5.3' in err.decode('utf-8') or 'PHP 5.4' in res.decode('utf-8') or 'PHP 5.4' in err.decode('utf-8') or 'PHP 5.5' in res.decode('utf-8') or 'PHP 5.5' in err.decode('utf-8'):
+        sublime.message_dialog('Warning.\nPHP 5.6 or newer is required.\nPlease, upgrade your local PHP installation.')
+        return False
 
     if not s.get("laravel_deprecated_warning", False) and laravel_style == True:
         s.set("laravel_deprecated_warning", True)
