@@ -33,6 +33,7 @@ php.fmt, php.tools and php.oracle aim to help PHP development.
  *  phpfmt: look for .php.tools.ini
  *  phpfmt: order method within classes
  *  phpfmt: refactor
+ *  phpfmt: toggle PHP 5.5 compatibility mode
 
 
 ### Currently Supported Transformations:
@@ -249,6 +250,8 @@ $d = new D();
 - **You must have a running copy of PHP on the machine you are running Sublime Text**
 
 Plugin runs with PHP 5.6 or newer installed in the machine running the plugin.
+
+There is a backwards compatible mode with PHP 5.5 - however not all improvements will be available in this mode.
 
 #### Install this plugin through Package Manager.
 

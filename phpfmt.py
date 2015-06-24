@@ -138,12 +138,16 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     visibility_order = s.get("visibility_order", False)
     yoda = s.get("yoda", False)
     readini = s.get("readini", False)
+    php55compat = s.get("php55compat", False)
 
     passes = s.get("passes", [])
     excludes = s.get("excludes", [])
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+    if php55compat is True:
+        formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.8.9.0.phar")
+
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     dirnm = ""
@@ -226,7 +230,7 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     print("phpfmt (php_ver) cmd:\n", cmd_ver)
     print("phpfmt (php_ver) out:\n", res.decode('utf-8'))
     print("phpfmt (php_ver) err:\n", err.decode('utf-8'))
-    if 'PHP 5.3' in res.decode('utf-8') or 'PHP 5.3' in err.decode('utf-8') or 'PHP 5.4' in res.decode('utf-8') or 'PHP 5.4' in err.decode('utf-8') or 'PHP 5.5' in res.decode('utf-8') or 'PHP 5.5' in err.decode('utf-8'):
+    if php55compat is False and ('PHP 5.3' in res.decode('utf-8') or 'PHP 5.3' in err.decode('utf-8') or 'PHP 5.4' in res.decode('utf-8') or 'PHP 5.4' in err.decode('utf-8') or 'PHP 5.5' in res.decode('utf-8') or 'PHP 5.5' in err.decode('utf-8')):
         sublime.message_dialog('Warning.\nPHP 5.6 or newer is required.\nPlease, upgrade your local PHP installation.')
         return False
 
@@ -434,6 +438,10 @@ def dogeneratephpdoc(eself, eview):
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+    php55compat = s.get("php55compat", False)
+    if php55compat is True:
+        formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.8.9.0.phar")
+
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     uri = view.file_name()
@@ -557,6 +565,10 @@ def doreordermethod(eself, eview):
 
     php_bin = s.get("php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+    php55compat = s.get("php55compat", False)
+    if php55compat is True:
+        formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.8.9.0.phar")
+
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
     uri = view.file_name()
@@ -896,7 +908,9 @@ class TogglePassMenuCommand(sublime_plugin.TextCommand):
         s = sublime.load_settings('phpfmt.sublime-settings')
         php_bin = s.get("php_bin", "php")
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
-
+        php55compat = s.get("php55compat", False)
+        if php55compat is True:
+            formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.8.9.0.phar")
 
         cmd_passes = [php_bin,formatter_path,'--list-simple'];
         print(cmd_passes)
@@ -944,7 +958,9 @@ class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
         s = sublime.load_settings('phpfmt.sublime-settings')
         php_bin = s.get("php_bin", "php")
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
-
+        php55compat = s.get("php55compat", False)
+        if php55compat is True:
+            formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.8.9.0.phar")
 
         cmd_passes = [php_bin,formatter_path,'--list-simple'];
         print(cmd_passes)
@@ -997,6 +1013,7 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "enable_auto_align":"auto align",
             "format_on_save":"format on save",
             "laravel_style":"Laravel style",
+            "php55compat":"PHP 5.5 compatibility mode",
             "psr1":"PSR1",
             "psr1_naming":"PSR1 Class and Method Naming",
             "psr2":"PSR2",

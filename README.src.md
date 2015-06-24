@@ -176,6 +176,8 @@ $d = new D();
 
 Plugin runs with PHP 5.6 or newer installed in the machine running the plugin.
 
+There is a backwards compatible mode with PHP 5.5 - however not all improvements will be available in this mode.
+
 #### Install this plugin through Package Manager.
 
 - In Sublime Text press `ctrl+shift+P`
