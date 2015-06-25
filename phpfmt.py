@@ -393,12 +393,13 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
             p.stdin.write(src.encode('utf-8'))
 
         res, err = p.communicate()
-        if p.returncode != 0:
-            return ''
 
         if debug:
             print("p:\n", p.returncode)
             print("err:\n", err.decode('utf-8'))
+
+        if p.returncode != 0:
+            return ''
 
         if sgter is not None:
             sublime.set_timeout(revert_active_window, 50)
