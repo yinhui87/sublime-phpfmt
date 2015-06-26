@@ -253,7 +253,24 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
             p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         res, err = p.communicate()
         print("phpfmt (php version) out:\n", res.decode('utf-8'))
-        print("phpfmt (php version) err:\n", err.decode('utf-8'))
+        if err.decode('utf-8'):
+            print("phpfmt (php version) err:\n", err.decode('utf-8'))
+
+        cmd_ver = [php_bin,"-m"];
+        if os.name == 'nt':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+        else:
+            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        res, err = p.communicate()
+        if res.decode('utf-8').find("tokenizer") != -1:
+            print("phpfmt (php tokenizer) found\n")
+        else:
+            print("phpfmt (php tokenizer) out:\n", res.decode('utf-8'))
+            if err.decode('utf-8'):
+                print("phpfmt (php tokenizer) err:\n", err.decode('utf-8'))
+
         cmd_ver = [php_bin,formatter_path,"--version"];
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
@@ -263,7 +280,8 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
             p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         res, err = p.communicate()
         print("phpfmt (fmt.phar version) out:\n", res.decode('utf-8'))
-        print("phpfmt (fmt.phar version) err:\n", err.decode('utf-8'))
+        if err.decode('utf-8'):
+            print("phpfmt (fmt.phar version) err:\n", err.decode('utf-8'))
 
     lintret = 1
     if "AutoSemicolon" in passes:
