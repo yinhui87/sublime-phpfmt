@@ -244,44 +244,8 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         return False
 
     if debug:
-        cmd_ver = [php_bin,"-v"];
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-        res, err = p.communicate()
-        print("phpfmt (php version) out:\n", res.decode('utf-8'))
-        if err.decode('utf-8'):
-            print("phpfmt (php version) err:\n", err.decode('utf-8'))
-
-        cmd_ver = [php_bin,"-m"];
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-        res, err = p.communicate()
-        if res.decode('utf-8').find("tokenizer") != -1:
-            print("phpfmt (php tokenizer) found\n")
-        else:
-            print("phpfmt (php tokenizer) out:\n", res.decode('utf-8'))
-            if err.decode('utf-8'):
-                print("phpfmt (php tokenizer) err:\n", err.decode('utf-8'))
-
-        cmd_ver = [php_bin,formatter_path,"--version"];
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-        res, err = p.communicate()
-        print("phpfmt (fmt.phar version) out:\n", res.decode('utf-8'))
-        if err.decode('utf-8'):
-            print("phpfmt (fmt.phar version) err:\n", err.decode('utf-8'))
+        s = debugEnvironment(php_bin, formatter_path)
+        print(s)
 
     lintret = 1
     if "AutoSemicolon" in passes:
@@ -767,6 +731,51 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
     else:
         print("lint error: ", lint_out)
 
+def debugEnvironment(php_bin, formatter_path):
+    ret = ""
+    cmd_ver = [php_bin,"-v"];
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+    else:
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    res, err = p.communicate()
+    ret += ("phpfmt (php version):\n"+res.decode('utf-8'))
+    if err.decode('utf-8'):
+        ret += ("phpfmt (php version) err:\n"+err.decode('utf-8'))
+    ret += "\n"
+
+    cmd_ver = [php_bin,"-m"];
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+    else:
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    res, err = p.communicate()
+    if res.decode('utf-8').find("tokenizer") != -1:
+        ret += ("phpfmt (php tokenizer) found\n")
+    else:
+        ret += ("phpfmt (php tokenizer):\n"+res.decode('utf-8'))
+        if err.decode('utf-8'):
+            ret += ("phpfmt (php tokenizer) err:\n"+err.decode('utf-8'))
+    ret += "\n"
+
+    cmd_ver = [php_bin,formatter_path,"--version"];
+    if os.name == 'nt':
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, startupinfo=startupinfo)
+    else:
+        p = subprocess.Popen(cmd_ver, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+    res, err = p.communicate()
+    ret += ("phpfmt (fmt.phar version):\n"+res.decode('utf-8'))
+    if err.decode('utf-8'):
+        ret += ("phpfmt (fmt.phar version) err:\n"+err.decode('utf-8'))
+    ret += "\n"
+
+    return ret
 
 def revert_active_window():
     sublime.active_window().active_view().run_command("revert")
@@ -907,6 +916,18 @@ class CalltipCommand(sublime_plugin.TextCommand):
 
         self.view.set_status("phpfmt", output)
 
+class DebugEnvCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        php55compat = s.get("php55compat", False)
+
+        php_bin = s.get("php_bin", "php")
+        formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+        if php55compat is True:
+            formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.8.9.0.phar")
+
+        s = debugEnvironment(php_bin, formatter_path)
+        sublime.message_dialog(s)
 
 class FmtNowCommand(sublime_plugin.TextCommand):
     def run(self, edit):

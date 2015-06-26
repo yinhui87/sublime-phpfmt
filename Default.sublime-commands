@@ -32,5 +32,7 @@
     {"caption": "phpfmt: order method within classes", "command": "order_method"},
     {"caption": "phpfmt: refactor", "command": "refactor"},
 
-    {"caption": "phpfmt: toggle PHP 5.5 compatibility mode", "command": "toggle", "args": {"option":"php55compat"}}
+    {"caption": "phpfmt: toggle PHP 5.5 compatibility mode", "command": "toggle", "args": {"option":"php55compat"}},
+
+    {"caption": "phpfmt: troubleshoot information", "command": "debug_env"}
 ]
