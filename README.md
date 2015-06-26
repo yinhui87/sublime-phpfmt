@@ -1,7 +1,42 @@
 # [php.fmt](https://github.com/dericofilho/php.tools) support for Sublime Text 2/3
 
-
 php.fmt, php.tools and php.oracle aim to help PHP development.
+
+### Installation
+
+#### Requirements
+- **You must have a running copy of PHP on the machine you are running Sublime Text**
+
+Plugin runs with PHP 5.6 or newer installed in the machine running the plugin.
+
+There is a backwards compatible mode with PHP 5.5 - however not all improvements will be available in this mode.
+
+#### Install this plugin through Package Manager.
+
+- In Sublime Text press `ctrl+shift+P`
+- Choose `Package Control: Install Package`
+- Choose `phpfmt`
+
+#### Configuration (Windows)
+
+- Edit configuration file (`%AppData%\Sublime Text\Packages\phpfmt\phpfmt.sublime-settings`)
+- For field `"php_bin"` enter the path to the php.exe
+  Example: `"php_bin":"c:/PHP/php.exe"`
+
+#### Configuration (OS X and Linux)
+
+- Edit configuration file (`phpfmt.sublime-settings`)
+- For field `"php_bin"` enter the path to the php
+  Example: `"php_bin":"/usr/local/bin/php"`
+
+### Settings
+
+Prefer using the toggle options at command palette. However you might find yourself in need to setup where PHP is running, use this option below for the configuration file.
+```
+{
+"php_bin":"/usr/local/bin/php",
+}
+```
 
 **The following features are available through command palette (`ctrl+shift+P` or `cmd+shift+P`) :**
 
@@ -81,6 +116,7 @@ php.fmt, php.tools and php.oracle aim to help PHP development.
  * StripNewlineAfterClassOpen        Strip empty lines after class opening curly brace.
  * StripNewlineAfterCurlyOpen        Strip empty lines after opening curly brace.
  * StripSpaceWithinControlStructures Strip empty lines within control structures.
+ * StripSpaces                       Remove all empty spaces
  * TightConcat                       Ensure string concatenation does not have spaces, except when close to numbers.
  * UpgradeToPreg                     Upgrade ereg_* calls to preg_*
  * WordWrap                          Word wrap at 80 columns.
@@ -243,36 +279,6 @@ $d = new D();
 </td>
 </tr>
 </table>
-
-### Installation
-
-#### Requirements
-- **You must have a running copy of PHP on the machine you are running Sublime Text**
-
-Plugin runs with PHP 5.6 or newer installed in the machine running the plugin.
-
-There is a backwards compatible mode with PHP 5.5 - however not all improvements will be available in this mode.
-
-#### Install this plugin through Package Manager.
-
-- In Sublime Text press `ctrl+shift+P`
-- Choose `Package Control: Install Package`
-- Choose `phpfmt`
-
-#### Configuration (Windows)
-
-- Edit configuration file located at `%AppData%\Sublime Text 2\Packages\phpfmt\phpfmt.sublime-settings`
-- For field `"php_bin"` enter the path to the php.exe
-  Example: `"php_bin":"c:/PHP/php.exe"`
-
-### Settings
-
-Prefer using the toggle options at command palette. However you might find yourself in need to setup where PHP is running, use this option below for the configuration file.
-```
-{
-"php_bin":"/usr/local/bin/php",
-}
-```
 
 ### Troubleshooting
 - Be sure you can run PHP from the command line.
