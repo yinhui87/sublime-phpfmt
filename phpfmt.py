@@ -1381,21 +1381,21 @@ if version == 2:
     sublime.save_settings('phpfmt.sublime-settings')
 
 
-def selfupdate():
-    s = sublime.load_settings('phpfmt.sublime-settings')
-    php_bin = s.get("php_bin", "php")
-    formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
+# def selfupdate():
+#     s = sublime.load_settings('phpfmt.sublime-settings')
+#     php_bin = s.get("php_bin", "php")
+#     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
-    print("Selfupdate")
-    cmd_update = [php_bin, formatter_path, '--selfupdate']
-    if os.name == 'nt':
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        p = subprocess.Popen(cmd_update, shell=False, startupinfo=startupinfo)
-    else:
-        p = subprocess.Popen(cmd_update, shell=False)
+#     print("Selfupdate")
+#     cmd_update = [php_bin, formatter_path, '--selfupdate']
+#     if os.name == 'nt':
+#         startupinfo = subprocess.STARTUPINFO()
+#         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+#         p = subprocess.Popen(cmd_update, shell=False, startupinfo=startupinfo)
+#     else:
+#         p = subprocess.Popen(cmd_update, shell=False)
 
-sublime.set_timeout(selfupdate, 3000)
+# sublime.set_timeout(selfupdate, 3000)
 
 
 def _ct_poller():
