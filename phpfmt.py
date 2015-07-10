@@ -16,105 +16,6 @@ if int(sublime.version()) >= 3000:
 else:
     from diff_match_patch.python2.diff_match_patch import diff_match_patch
 
-
-passesOptions = {
-    "AddMissingParentheses":{
-        "description": "add missing parentheses",
-        "oldName":"add_missing_parentheses",
-    },
-    "AlignDoubleSlashComments":{
-        "description": "comments auto align",
-        "oldName":"comment_auto_align",
-    },
-    "AlignTypehint":{
-        "description": "typehint auto align",
-        "oldName":"typehint_auto_align",
-    },
-    "AutoPreincrement":{
-        "description": "automatic preincrement",
-        "oldName":"autopreincrement",
-    },
-    "EncapsulateNamespaces":{
-        "description": "automatic namespace encapsulation",
-        "oldName":"encapsulate_namespaces",
-    },
-    "JoinToImplode":{
-        "description": "replace join() to implode()",
-        "oldName":"join_to_implode",
-    },
-    "MergeElseIf":{
-        "description": "merge else if into elseif",
-        "oldName":"merge_else_if",
-    },
-    "PrettyPrintDocBlocks":{
-        "description": "doc block beautifier",
-        "oldName":"pretty_print_doc_blocks",
-    },
-    "PSR2LnAfterNamespace":{
-        "description": "automatic linebreak after namespace",
-        "oldName":"linebreak_after_namespace",
-    },
-    "RemoveUseLeadingSlash":{
-        "description": "remove_leading_slash",
-        "oldName":"remove_leading_slash",
-    },
-    "RestoreComments":{
-        "description": "skipping comment formatting",
-        "oldName":"restore_comments",
-    },
-    "ReturnNull":{
-        "description": "remove empty returns",
-        "oldName":"remove_return_empty",
-    },
-    "ShortArray":{
-        "description": "short array",
-        "oldName":"short_array",
-    },
-    "SpaceBetweenMethods":{
-        "description": "automatic linebreak between methods",
-        "oldName":"linebreak_between_methods"
-    },
-    "StripExtraCommaInArray":{
-        "description": "strip extra comma in array",
-        "oldName":"strip_extra_comma_in_array",
-    },
-    "UpgradeToPreg":{
-        "description": "regex call upgrade to preg_*",
-        "oldName":"upgrade_to_preg",
-    },
-    "WordWrap":{
-        "description": "wordwrap (80 columns)",
-        "oldName":"wordwrap",
-    },
-    "LeftWordWrap":{
-        "description": "wordwrap (80 columns - left)",
-        "oldName":"left_wordwrap",
-    },
-    "WrongConstructorName":{
-        "description": "update old style constructor",
-        "oldName":"wrong_constructor_name",
-    },
-    "ReplaceIsNull":{
-        "description": "replace 'is_null' with 'null ==='",
-        "oldName":"replace_is_null",
-    },
-    "DoubleToSingleQuote":{
-        "description": "replace double quotes with single quotes",
-        "oldName":"double_to_single_quote",
-    },
-    "IndentTernaryConditions":{
-        "description": "indent multiline ternary comparisons",
-        "oldName":"indent_ternary_conditions",
-    },
-    "ClassToSelf":{
-        "description": "rename class name to 'self'",
-        "oldName":"class_to_self",
-    },
-    "ClassToStatic":{
-        "description": "rename class name to 'static'",
-        "oldName":"class_to_static",
-    }
-}
 def dofmt(eself, eview, sgter = None, src = None, force = False):
     self = eself
     view = eview
@@ -955,8 +856,6 @@ class TogglePassMenuCommand(sublime_plugin.TextCommand):
                 option = chosenPass[0]
 
                 passDesc = option
-                if option in passesOptions:
-                    passDesc = passesOptions[option]['description']
 
                 if option in passes:
                     passes.remove(option)
@@ -1005,8 +904,6 @@ class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
                 option = chosenPass[0]
 
                 passDesc = option
-                if option in passesOptions:
-                    passDesc = passesOptions[option]['description']
 
                 if option in excludes:
                     excludes.remove(option)
@@ -1340,20 +1237,6 @@ s = sublime.load_settings('phpfmt.sublime-settings')
 version = s.get('version', 1)
 s.set('version', version)
 sublime.save_settings('phpfmt.sublime-settings')
-
-if version == 1:
-    # Convert to version 2
-    print("Convert to version 2")
-    passes = []
-    for (name, info) in passesOptions.items():
-        active = s.get(info["oldName"], False)
-        if active:
-            passes.append(name)
-        s.erase(info["oldName"])
-    s.erase('psr1_and_2')
-    s.set('passes', passes)
-    s.set('version', 2)
-    sublime.save_settings('phpfmt.sublime-settings')
 
 if version == 2:
     # Convert to version 3
