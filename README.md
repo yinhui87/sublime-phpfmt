@@ -69,6 +69,7 @@ Prefer using the toggle options at command palette. However you might find yours
  *  phpfmt: order method within classes
  *  phpfmt: refactor
  *  phpfmt: toggle PHP 5.5 compatibility mode
+ *  phpfmt: troubleshoot information
 
 
 ### Currently Supported Transformations:
@@ -78,6 +79,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * AlignDoubleArrow                  Vertically align T_DOUBLE_ARROW (=>).
  * AlignDoubleSlashComments          Vertically align "//" comments.
  * AlignEquals                       Vertically align "=".
+ * AlignGroupDoubleArrow             Vertically align T_DOUBLE_ARROW (=>) by line groups.
  * AlignPHPCode                      Align PHP code within HTML block.
  * AlignTypehint                     Vertically align "//" comments.
  * AllmanStyleBraces                 Transform all curly braces into Allman-style.
