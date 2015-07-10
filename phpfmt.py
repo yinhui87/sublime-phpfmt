@@ -128,7 +128,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     ignore_list = s.get("ignore_list", "")
     indent_with_space = s.get("indent_with_space", False)
     laravel_style = s.get("laravel_style", False)
-    psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
@@ -284,11 +283,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         cmd_fmt.append(formatter_path)
         cmd_fmt.append("--config="+config_file)
 
-        if psr:
-            psr1 = True
-            psr1_naming = True
-            psr2 = True
-
         if psr1:
             cmd_fmt.append("--psr1")
 
@@ -408,7 +402,6 @@ def dogeneratephpdoc(eself, eview):
     ignore_list = s.get("ignore_list", "")
     indent_with_space = s.get("indent_with_space", False)
     laravel_style = s.get("laravel_style", False)
-    psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
@@ -467,11 +460,6 @@ def dogeneratephpdoc(eself, eview):
 
         cmd_fmt.append(formatter_path)
         cmd_fmt.append("--config="+config_file)
-
-        if psr:
-            psr1 = True
-            psr1_naming = True
-            psr2 = True
 
         if psr1:
             cmd_fmt.append("--psr1")
@@ -535,7 +523,6 @@ def doreordermethod(eself, eview):
     ignore_list = s.get("ignore_list", "")
     indent_with_space = s.get("indent_with_space", False)
     laravel_style = s.get("laravel_style", False)
-    psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
@@ -595,11 +582,6 @@ def doreordermethod(eself, eview):
         cmd_fmt.append(formatter_path)
         cmd_fmt.append("--config="+config_file)
 
-        if psr:
-            psr1 = True
-            psr1_naming = True
-            psr2 = True
-
         if psr1:
             cmd_fmt.append("--psr1")
 
@@ -655,7 +637,6 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
     debug = s.get("debug", False)
-    psr = s.get("psr1_and_2", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
