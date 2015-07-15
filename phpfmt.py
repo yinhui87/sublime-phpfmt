@@ -16,34 +16,39 @@ if int(sublime.version()) >= 3000:
 else:
     from diff_match_patch.python2.diff_match_patch import diff_match_patch
 
+def getSetting( view, settings, key, default ):
+    local = 'phpfmt.' + key
+    return view.settings().get( local, settings.get( key, default ) )
+
 def dofmt(eself, eview, sgter = None, src = None, force = False):
     self = eself
     view = eview
     s = sublime.load_settings('phpfmt.sublime-settings')
 
-    additional_extensions = s.get("additional_extensions", [])
-    autoimport = s.get("autoimport", True)
-    cakephp_style = s.get("cakephp_style", False)
-    debug = s.get("debug", False)
-    enable_auto_align = s.get("enable_auto_align", False)
-    ignore_list = s.get("ignore_list", "")
-    indent_with_space = s.get("indent_with_space", False)
-    laravel_style = s.get("laravel_style", False)
-    psr1 = s.get("psr1", False)
-    psr1_naming = s.get("psr1_naming", psr1)
-    psr2 = s.get("psr2", False)
-    smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
-    skip_if_ini_missing = s.get("skip_if_ini_missing", False)
-    space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
-    visibility_order = s.get("visibility_order", False)
-    yoda = s.get("yoda", False)
-    readini = s.get("readini", False)
-    php55compat = s.get("php55compat", False)
 
-    passes = s.get("passes", [])
-    excludes = s.get("excludes", [])
+    additional_extensions = getSetting( view, s, "additional_extensions", [])
+    autoimport = getSetting( view, s, "autoimport", True)
+    cakephp_style = getSetting( view, s, "cakephp_style", False)
+    debug = getSetting( view, s, "debug", False)
+    enable_auto_align = getSetting( view, s, "enable_auto_align", False)
+    ignore_list = getSetting( view, s, "ignore_list", "")
+    indent_with_space = getSetting( view, s, "indent_with_space", False)
+    laravel_style = getSetting( view, s, "laravel_style", False)
+    psr1 = getSetting( view, s, "psr1", False)
+    psr1_naming = getSetting( view, s, "psr1_naming", psr1)
+    psr2 = getSetting( view, s, "psr2", False)
+    smart_linebreak_after_curly = getSetting( view, s, "smart_linebreak_after_curly", True)
+    skip_if_ini_missing = getSetting( view, s, "skip_if_ini_missing", False)
+    space_around_exclamation_mark = getSetting( view, s, "space_around_exclamation_mark", False)
+    visibility_order = getSetting( view, s, "visibility_order", False)
+    yoda = getSetting( view, s, "yoda", False)
+    readini = getSetting( view, s, "readini", False)
+    php55compat = getSetting( view, s, "php55compat", False)
 
-    php_bin = s.get("php_bin", "php")
+    passes = getSetting( view, s, "passes", [])
+    excludes = getSetting( view, s, "excludes", [])
+
+    php_bin = getSetting( view, s, "php_bin", "php")
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
     if php55compat is True:
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.8.9.0.phar")
