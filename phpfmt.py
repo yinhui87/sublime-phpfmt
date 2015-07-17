@@ -662,6 +662,15 @@ def debugEnvironment(php_bin, formatter_path):
         ret += ("phpfmt (fmt.phar version) err:\n"+err.decode('utf-8'))
     ret += "\n"
 
+    s = sublime.load_settings('phpfmt.sublime-settings')
+    php55compat = s.get("php55compat", False)
+    ret += "PHP 5.5 compatibility mode: "
+    if php55compat:
+        ret += "True\n"
+    else:
+        ret += "False\n"
+    ret += "\n"
+
     return ret
 
 def revert_active_window():
