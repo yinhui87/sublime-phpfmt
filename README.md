@@ -84,7 +84,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * AlignTypehint                     Vertically align "//" comments.
  * AllmanStyleBraces                 Transform all curly braces into Allman-style.
  * AutoPreincrement                  Automatically convert postincrement to preincrement.
- * AutoSemicolon                     Beta - Add semicolons in statements ends.
+ * AutoSemicolon                     Add semicolons in statements ends.
  * CakePHPStyle                      Applies CakePHP Coding Style
  * ClassToSelf                       "self" is preferred within class, trait or interface.
  * ClassToStatic                     "static" is preferred within class, trait or interface.
@@ -104,6 +104,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * PrettyPrintDocBlocks              Prettify Doc Blocks
  * PSR2EmptyFunction                 Merges in the same line of function header the body of empty functions.
  * PSR2MultilineFunctionParams       Break function parameters into multiple lines.
+ * ReindentSwitchBlocks              Reindent one level deeper the content of switch blocks.
  * RemoveUseLeadingSlash             Remove leading slash in T_USE imports.
  * ReplaceBooleanAndOr               Convert from "and"/"or" to "&&"/"||". Danger! This pass leads to behavior change.
  * ReplaceIsNull                     Replace is_null($a) with null === $a.
@@ -117,8 +118,8 @@ Prefer using the toggle options at command palette. However you might find yours
  * StripExtraCommaInArray            Remove trailing commas within array blocks
  * StripNewlineAfterClassOpen        Strip empty lines after class opening curly brace.
  * StripNewlineAfterCurlyOpen        Strip empty lines after opening curly brace.
- * StripSpaceWithinControlStructures Strip empty lines within control structures.
  * StripSpaces                       Remove all empty spaces
+ * StripSpaceWithinControlStructures Strip empty lines within control structures.
  * TightConcat                       Ensure string concatenation does not have spaces, except when close to numbers.
  * UpgradeToPreg                     Upgrade ereg_* calls to preg_*
  * WordWrap                          Word wrap at 80 columns.
