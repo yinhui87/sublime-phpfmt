@@ -1258,6 +1258,15 @@ if version == 2:
     s.set('version', 3)
     sublime.save_settings('phpfmt.sublime-settings')
 
+if version == 3:
+    # Convert to version 3
+    print("Convert to version 4")
+    s.set('version', 4)
+    passes = s.get('passes', [])
+    passes.append("ReindentSwitchBlocks")
+    s.set('passes', passes)
+    sublime.save_settings('phpfmt.sublime-settings')
+
 
 # def selfupdate():
 #     s = sublime.load_settings('phpfmt.sublime-settings')
