@@ -101,6 +101,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * MergeNamespaceWithOpenTag         Ensure there is no more than one linebreak before namespace
  * MildAutoPreincrement              Automatically convert postincrement to preincrement. (Deprecated pass. Use AutoPreincrement instead).
  * OrderMethod                       Sort methods within class in alphabetic order.
+ * OrderMethodAndVisibility          Sort methods within class in alphabetic and visibility order .
  * PrettyPrintDocBlocks              Prettify Doc Blocks
  * PSR2EmptyFunction                 Merges in the same line of function header the body of empty functions.
  * PSR2MultilineFunctionParams       Break function parameters into multiple lines.
