@@ -1,6 +1,4 @@
-# [php.fmt](https://github.com/dericofilho/php.tools) support for Sublime Text 2/3
-
-php.fmt, php.tools and php.oracle aim to help PHP development.
+# [php.fmt](https://github.com/phpfmt/php.tools) support for Sublime Text 2/3
 
 ### Installation
 
@@ -206,7 +204,7 @@ $d = new D();
 
 ### Troubleshooting
 - Be sure you can run PHP from the command line.
-- If you are a MAMP user, please use the MAMP's PHP binary to execute the plugin. This issue might be handy to help you configure the plugin: https://github.com/dericofilho/sublime-phpfmt/issues/109
+- If you need support, please open an issue at [php.tools issues](https://github.com/phpfmt/php.tools/issues)
 
 ### Acknowledgements
 - GoSublime - for the method to update the formatted buffer
