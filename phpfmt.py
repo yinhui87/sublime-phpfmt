@@ -514,7 +514,7 @@ def doreordermethod(eself, eview):
         if cakephp_style:
             cmd_fmt.append("--cakephp")
 
-        passes.append("OrderMethod")
+        passes.append("OrganizeClass")
         if len(passes) > 0:
             cmd_fmt.append("--passes="+','.join(passes))
 

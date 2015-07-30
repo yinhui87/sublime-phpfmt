@@ -29,7 +29,7 @@
     {"caption": "phpfmt: getter and setter (snake_case)", "command": "sgter_snake"},
     {"caption": "phpfmt: generate PHPDoc block", "command": "generate_phpdoc"},
     {"caption": "phpfmt: look for .php.tools.ini", "command": "toggle", "args": {"option":"readini"}},
-    {"caption": "phpfmt: order method within classes", "command": "order_method"},
+    {"caption": "phpfmt: reorganize content of class", "command": "order_method"},
     {"caption": "phpfmt: refactor", "command": "refactor"},
 
     {"caption": "phpfmt: toggle PHP 5.5 compatibility mode", "command": "toggle", "args": {"option":"php55compat"}},
