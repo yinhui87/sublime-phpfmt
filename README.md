@@ -104,6 +104,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * PrettyPrintDocBlocks              Prettify Doc Blocks
  * PSR2EmptyFunction                 Merges in the same line of function header the body of empty functions.
  * PSR2MultilineFunctionParams       Break function parameters into multiple lines.
+ * ReindentAndAlignObjOps            Align object operators.
  * ReindentSwitchBlocks              Reindent one level deeper the content of switch blocks.
  * RemoveIncludeParentheses          Remove parentheses from include declarations.
  * RemoveUseLeadingSlash             Remove leading slash in T_USE imports.
