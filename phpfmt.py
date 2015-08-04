@@ -285,8 +285,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
         if sgter is not None:
             sublime.set_timeout(revert_active_window, 50)
-            time.sleep(1)
-            sublime.active_window().active_view().run_command("phpfmt_vet")
 
         return res.decode('utf-8')
     else:
@@ -953,7 +951,6 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "smart_linebreak_after_curly":"smart linebreak after curly",
             "skip_if_ini_missing":"skip if ini file is missing",
             "space_around_exclamation_mark":"space around exclamation mark",
-            "vet":"vet",
             "visibility_order":"visibility order",
             "yoda":"yoda mode",
         }
@@ -1021,54 +1018,6 @@ class SgterCamelCommand(sublime_plugin.TextCommand):
 class SgterGoCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         dofmt(self, self.view, 'golang')
-
-class PhpfmtVetCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        s = sublime.load_settings('phpfmt.sublime-settings')
-        run_vet = s.get('vet', False)
-        if not run_vet:
-            return False
-
-        view = self.view
-
-        uri = view.file_name()
-        dirNm, sfn = os.path.split(uri)
-        ext = os.path.splitext(uri)[1][1:]
-        additional_extensions = s.get("additional_extensions", [])
-
-        if "php" != ext and not ext in additional_extensions:
-            print("phpfmt (vet): not a PHP file")
-            return False
-
-
-        php_bin = s.get("php_bin", "php")
-        vetPath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "vet.php")
-        cmdVet = [php_bin]
-        cmdVet.append(vetPath)
-        cmdVet.append(view.file_name())
-        if os.name == 'nt':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            p = subprocess.Popen(cmdVet, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirNm, shell=False, startupinfo=startupinfo)
-        else:
-            p = subprocess.Popen(cmdVet, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dirNm, shell=False)
-        res, err = p.communicate()
-        print("phpfmt (vet): "+res.decode('utf-8'))
-        print("phpfmt (vet) err: "+err.decode('utf-8'))
-        if len(res.decode('utf-8')) > 0:
-            outputToPanel("phpfmtvet", self, edit, res.decode('utf-8'));
-            # errors = res.decode('utf-8').split('\n')
-            # x = csv.reader(errors)
-            # regions = []
-            # for row in x:
-            #     line = self.view.full_line(self.view.text_point(row[1],0))
-            #     regions.append(line)
-            # view.erase_regions("vet")
-            # view.add_regions("vet", [line], "comment", "dot")
-            # print(view.get_regions("vet"))
-            # print("draw line")
-        else:
-            hidePanel("phpfmtvet", self, edit)
 
 class BuildOracleCommand(sublime_plugin.TextCommand):
     def run(self, edit):

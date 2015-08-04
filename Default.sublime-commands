@@ -15,7 +15,6 @@
     {"caption": "phpfmt: toggle format on save", "command": "toggle", "args": {"option":"format_on_save"}},
 
     {"caption": "phpfmt: toggle Laravel style (deprecated)", "command": "toggle", "args": {"option":"laravel_style"}},
-    {"caption": "phpfmt: toggle php.vet", "command": "toggle", "args": {"option":"vet"}},
     {"caption": "phpfmt: toggle PSR1 - Class and Methods names", "command": "toggle", "args": {"option":"psr1_naming"}},
     {"caption": "phpfmt: toggle PSR1", "command": "toggle", "args": {"option":"psr1"}},
     {"caption": "phpfmt: toggle PSR2", "command": "toggle", "args": {"option":"psr2"}},

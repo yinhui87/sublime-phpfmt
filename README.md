@@ -50,7 +50,6 @@ Prefer using the toggle options at command palette. However you might find yours
  *  phpfmt: toggle dependency autoimport
  *  phpfmt: toggle format on save
  *  phpfmt: toggle Laravel style (deprecated)
- *  phpfmt: toggle php.vet
  *  phpfmt: toggle PSR1 - Class and Methods names
  *  phpfmt: toggle PSR1
  *  phpfmt: toggle PSR2
