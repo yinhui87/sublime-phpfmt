@@ -1,6 +1,5 @@
 [
     {"caption": "phpfmt: format now", "command": "fmt_now"},
-    {"caption": "phpfmt: disable space around exclamation mark - Laravel Only", "command": "toggle", "args": {"option":"space_around_exclamation_mark"}},
     {"caption": "phpfmt: indentation with spaces", "command": "indent_with_spaces"},
 
     {"caption": "phpfmt: toggle additional transformations", "command": "toggle_pass_menu" },

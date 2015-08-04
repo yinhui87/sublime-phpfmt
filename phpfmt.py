@@ -37,7 +37,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     psr2 = getSetting( view, s, "psr2", False)
     smart_linebreak_after_curly = getSetting( view, s, "smart_linebreak_after_curly", True)
     skip_if_ini_missing = getSetting( view, s, "skip_if_ini_missing", False)
-    space_around_exclamation_mark = getSetting( view, s, "space_around_exclamation_mark", False)
     visibility_order = getSetting( view, s, "visibility_order", False)
     yoda = getSetting( view, s, "yoda", False)
     readini = getSetting( view, s, "readini", False)
@@ -214,16 +213,8 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         if len(passes) > 0:
             cmd_fmt.append("--passes="+','.join(passes))
 
-        excludeextras = []
-
         if len(excludes) > 0:
-            excludeextras = excludes
-
-        if space_around_exclamation_mark:
-            excludeextras.append("SpaceAroundExclamationMark")
-
-        if len(excludeextras) > 0:
-            cmd_fmt.append("--exclude="+','.join(excludeextras))
+            cmd_fmt.append("--exclude="+','.join(excludes))
 
         if debug:
             cmd_fmt.append("-v")
@@ -291,7 +282,6 @@ def dogeneratephpdoc(eself, eview):
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
-    space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
     visibility_order = s.get("visibility_order", False)
     yoda = s.get("yoda", False)
 
@@ -404,7 +394,6 @@ def doreordermethod(eself, eview):
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
     smart_linebreak_after_curly = s.get("smart_linebreak_after_curly", True)
-    space_around_exclamation_mark = s.get("space_around_exclamation_mark", False)
     visibility_order = s.get("visibility_order", False)
     yoda = s.get("yoda", False)
 
@@ -915,7 +904,6 @@ class ToggleCommand(sublime_plugin.TextCommand):
             "readini":"look for .php.tools.ini",
             "smart_linebreak_after_curly":"smart linebreak after curly",
             "skip_if_ini_missing":"skip if ini file is missing",
-            "space_around_exclamation_mark":"space around exclamation mark",
             "visibility_order":"visibility order",
             "yoda":"yoda mode",
         }
