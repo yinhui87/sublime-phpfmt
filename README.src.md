@@ -206,6 +206,14 @@ $d = new D();
 - Be sure you can run PHP from the command line.
 - If you need support, please open an issue at [php.tools issues](https://github.com/phpfmt/php.tools/issues)
 
+### The Most FAQ
+
+***I want to use sublime-phpfmt, but it needs PHP 5.6 or newer and on my production
+server I have PHP 5.5 or older. What should I do?***
+
+Consider installing a standalone PHP 5.6 in a separate directory and have it *not*
+configured in the environment. Within the plugin, ensure `php_bin` parameter is pointed to this standalone installation.
+
 ### Acknowledgements
 - GoSublime - for the method to update the formatted buffer
 - Google's diff match patch - http://code.google.com/p/google-diff-match-patch/
