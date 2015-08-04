@@ -28,12 +28,10 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
     additional_extensions = getSetting( view, s, "additional_extensions", [])
     autoimport = getSetting( view, s, "autoimport", True)
-    cakephp_style = getSetting( view, s, "cakephp_style", False)
     debug = getSetting( view, s, "debug", False)
     enable_auto_align = getSetting( view, s, "enable_auto_align", False)
     ignore_list = getSetting( view, s, "ignore_list", "")
     indent_with_space = getSetting( view, s, "indent_with_space", False)
-    laravel_style = getSetting( view, s, "laravel_style", False)
     psr1 = getSetting( view, s, "psr1", False)
     psr1_naming = getSetting( view, s, "psr1_naming", psr1)
     psr2 = getSetting( view, s, "psr2", False)
@@ -139,15 +137,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
         sublime.message_dialog('Warning.\nPHP 5.6 or newer is required.\nPlease, upgrade your local PHP installation.')
         return False
 
-    if not s.get("laravel_deprecated_warning", False) and laravel_style == True:
-        s.set("laravel_deprecated_warning", True)
-        sublime.save_settings('phpfmt.sublime-settings')
-        sublime.message_dialog('Warning.\nLaravel-style is deprecated and will be removed in the next major release.\nPlease, consider using AllmanStyleBraces.')
-
-    if psr2 == True and laravel_style == True:
-        sublime.message_dialog('Warning.\nLaravel-style and PSR-2 are mutually exclusive.');
-        return False
-
     if debug:
         s = debugEnvironment(php_bin, formatter_path)
         print(s)
@@ -214,12 +203,6 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
         if yoda:
             cmd_fmt.append("--yoda")
-
-        if laravel_style:
-            cmd_fmt.append("--laravel")
-
-        if cakephp_style:
-            cmd_fmt.append("--cakephp")
 
         if sgter is not None:
             cmd_fmt.append("--setters_and_getters="+sgter)
@@ -300,12 +283,10 @@ def dogeneratephpdoc(eself, eview):
 
     additional_extensions = s.get("additional_extensions", [])
     autoimport = s.get("autoimport", True)
-    cakephp_style = s.get("cakephp_style", False)
     debug = s.get("debug", False)
     enable_auto_align = s.get("enable_auto_align", False)
     ignore_list = s.get("ignore_list", "")
     indent_with_space = s.get("indent_with_space", False)
-    laravel_style = s.get("laravel_style", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
@@ -384,12 +365,6 @@ def dogeneratephpdoc(eself, eview):
 
         if visibility_order:
             cmd_fmt.append("--visibility_order")
-
-        if laravel_style:
-            cmd_fmt.append("--laravel")
-
-        if cakephp_style:
-            cmd_fmt.append("--cakephp")
 
         passes.append("GeneratePHPDoc")
         if len(passes) > 0:
@@ -421,12 +396,10 @@ def doreordermethod(eself, eview):
 
     additional_extensions = s.get("additional_extensions", [])
     autoimport = s.get("autoimport", True)
-    cakephp_style = s.get("cakephp_style", False)
     debug = s.get("debug", False)
     enable_auto_align = s.get("enable_auto_align", False)
     ignore_list = s.get("ignore_list", "")
     indent_with_space = s.get("indent_with_space", False)
-    laravel_style = s.get("laravel_style", False)
     psr1 = s.get("psr1", False)
     psr1_naming = s.get("psr1_naming", psr1)
     psr2 = s.get("psr2", False)
@@ -505,12 +478,6 @@ def doreordermethod(eself, eview):
 
         if visibility_order:
             cmd_fmt.append("--visibility_order")
-
-        if laravel_style:
-            cmd_fmt.append("--laravel")
-
-        if cakephp_style:
-            cmd_fmt.append("--cakephp")
 
         passes.append("OrganizeClass")
         if len(passes) > 0:
@@ -939,10 +906,8 @@ class ToggleCommand(sublime_plugin.TextCommand):
         options = {
             "autocomplete":"autocomplete",
             "autoimport":"dependency autoimport",
-            "cakephp_style":"CakePHP style",
             "enable_auto_align":"auto align",
             "format_on_save":"format on save",
-            "laravel_style":"Laravel style",
             "php55compat":"PHP 5.5 compatibility mode",
             "psr1":"PSR1",
             "psr1_naming":"PSR1 Class and Method Naming",
