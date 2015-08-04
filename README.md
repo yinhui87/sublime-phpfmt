@@ -64,7 +64,7 @@ Prefer using the toggle options at command palette. However you might find yours
  *  phpfmt: getter and setter (snake_case)
  *  phpfmt: generate PHPDoc block
  *  phpfmt: look for .php.tools.ini
- *  phpfmt: order method within classes
+ *  phpfmt: reorganize content of class
  *  phpfmt: refactor
  *  phpfmt: toggle PHP 5.5 compatibility mode
  *  phpfmt: troubleshoot information
@@ -100,10 +100,12 @@ Prefer using the toggle options at command palette. However you might find yours
  * MildAutoPreincrement              Automatically convert postincrement to preincrement. (Deprecated pass. Use AutoPreincrement instead).
  * OrderMethod                       Sort methods within class in alphabetic order.
  * OrderMethodAndVisibility          Sort methods within class in alphabetic and visibility order .
+ * OrganizeClass                     Organize class structure (beta).
  * PrettyPrintDocBlocks              Prettify Doc Blocks
  * PSR2EmptyFunction                 Merges in the same line of function header the body of empty functions.
  * PSR2MultilineFunctionParams       Break function parameters into multiple lines.
  * ReindentSwitchBlocks              Reindent one level deeper the content of switch blocks.
+ * RemoveIncludeParentheses          Remove parentheses from include declarations.
  * RemoveUseLeadingSlash             Remove leading slash in T_USE imports.
  * ReplaceBooleanAndOr               Convert from "and"/"or" to "&&"/"||". Danger! This pass leads to behavior change.
  * ReplaceIsNull                     Replace is_null($a) with null === $a.
@@ -289,3 +291,4 @@ $d = new D();
 ### Acknowledgements
 - GoSublime - for the method to update the formatted buffer
 - Google's diff match patch - http://code.google.com/p/google-diff-match-patch/
+
