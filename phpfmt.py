@@ -1253,6 +1253,7 @@ def merge(view, size, text, edit):
     vs.set("translate_tabs_to_spaces", False)
     origin_src = view.substr(sublime.Region(0, view.size()))
     if not origin_src.strip():
+        vs.set("translate_tabs_to_spaces", ttts)
         return (False, '')
 
     try:
