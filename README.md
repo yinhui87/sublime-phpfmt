@@ -39,17 +39,14 @@ Prefer using the toggle options at command palette. However you might find yours
 **The following features are available through command palette (`ctrl+shift+P` or `cmd+shift+P`) :**
 
  *  phpfmt: format now
- *  phpfmt: disable space around exclamation mark - Laravel Only
  *  phpfmt: indentation with spaces
  *  phpfmt: toggle additional transformations
  *  phpfmt: toggle excluded transformations
  *  phpfmt: toggle skip execution when .php.tools.ini is missing
  *  phpfmt: toggle auto align
  *  phpfmt: toggle autocomplete
- *  phpfmt: toggle CakePHP style (experimental)
  *  phpfmt: toggle dependency autoimport
  *  phpfmt: toggle format on save
- *  phpfmt: toggle Laravel style (deprecated)
  *  phpfmt: toggle PSR1 - Class and Methods names
  *  phpfmt: toggle PSR1
  *  phpfmt: toggle PSR2
