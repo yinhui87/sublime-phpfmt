@@ -133,7 +133,8 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     print("phpfmt (php_ver) out:\n", res.decode('utf-8'))
     print("phpfmt (php_ver) err:\n", err.decode('utf-8'))
     if php55compat is False and ('PHP 5.3' in res.decode('utf-8') or 'PHP 5.3' in err.decode('utf-8') or 'PHP 5.4' in res.decode('utf-8') or 'PHP 5.4' in err.decode('utf-8') or 'PHP 5.5' in res.decode('utf-8') or 'PHP 5.5' in err.decode('utf-8')):
-        sublime.message_dialog('Warning.\nPHP 5.6 or newer is required.\nPlease, upgrade your local PHP installation.')
+        s = debugEnvironment(php_bin, formatter_path)
+        sublime.message_dialog('Warning.\nPHP 5.6 or newer is required.\nPlease, upgrade your local PHP installation.\nDebug information:'+s)
         return False
 
     if debug:
