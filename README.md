@@ -1,5 +1,7 @@
 # [php.fmt](https://github.com/phpfmt/php.tools) support for Sublime Text 2/3
 
+If you need help, check this project [Google Group](https://groups.google.com/forum/#!forum/phpfmt).
+
 ### Installation
 
 #### Requirements
@@ -96,6 +98,8 @@ Prefer using the toggle options at command palette. However you might find yours
  * MildAutoPreincrement              Automatically convert postincrement to preincrement. (Deprecated pass. Use AutoPreincrement instead).
  * OrderMethod                       Sort methods within class in alphabetic order.
  * OrderMethodAndVisibility          Sort methods within class in alphabetic and visibility order .
+ * OrderAndRemoveUseClauses          Order use block and remove unused imports.
+ * OnlyOrderUseClauses               Order use block - do not remove unused imports.
  * OrganizeClass                     Organize class structure (beta).
  * PrettyPrintDocBlocks              Prettify Doc Blocks
  * PSR2EmptyFunction                 Merges in the same line of function header the body of empty functions.
