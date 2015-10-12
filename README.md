@@ -1,7 +1,5 @@
 # [php.fmt](https://github.com/phpfmt/php.tools) support for Sublime Text 2/3
 
-If you need help, check this project [Google Group](https://groups.google.com/forum/#!forum/phpfmt).
-
 ### Installation
 
 #### Requirements
