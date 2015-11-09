@@ -113,6 +113,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * ShortArray                        Convert old array into new array. (array() -> [])
  * SmartLnAfterCurlyOpen             Add line break when implicit curly block is added.
  * SortUseNameSpace                  Organize use clauses by length and alphabetic order.
+ * SpaceAroundExclamationMark        Add spaces around exclamation mark.
  * SpaceAroundControlStructures      Add space around control structures.
  * SpaceBetweenMethods               Put space between methods.
  * StrictBehavior                    Activate strict option in array_search, base64_decode, in_array, array_keys, mb_detect_encoding. Danger! This pass leads to behavior change.
