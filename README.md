@@ -100,6 +100,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * OrderMethodAndVisibility          Organize class, interface and trait structure.
  * OrderAndRemoveUseClauses          Order use block and remove unused imports.
  * OnlyOrderUseClauses               Order use block - do not remove unused imports.
+ * PHPDocTypesToFunctionTypehint     Read variable types from PHPDoc blocks and add them in function signatures.
  * PrettyPrintDocBlocks              Prettify Doc Blocks
  * PSR2EmptyFunction                 Merges in the same line of function header the body of empty functions.
  * PSR2MultilineFunctionParams       Break function parameters into multiple lines.
