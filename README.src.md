@@ -1,4 +1,6 @@
-# [php.fmt](https://github.com/phpfmt/php.tools) support for Sublime Text 2/3
+# [phpfmt](https://github.com/phpfmt/fmt) support for Sublime Text 2/3
+
+***[This project follows a Code of Conduct.](https://github.com/phpfmt/code-of-conduct)***
 
 ### Installation
 
