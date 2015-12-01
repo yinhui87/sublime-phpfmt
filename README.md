@@ -1,4 +1,4 @@
-# [php.fmt](https://github.com/phpfmt/php.tools) support for Sublime Text 2/3
+# [phpfmt](https://github.com/phpfmt/fmt) support for Sublime Text 2/3
 
 ### Installation
 
@@ -110,6 +110,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * RemoveUseLeadingSlash             Remove leading slash in T_USE imports.
  * ReplaceBooleanAndOr               Convert from "and"/"or" to "&&"/"||". Danger! This pass leads to behavior change.
  * ReplaceIsNull                     Replace is_null($a) with null === $a.
+ * RestoreComments                   Revert any formatting of comments content.
  * ReturnNull                        Simplify empty returns.
  * ShortArray                        Convert old array into new array. (array() -> [])
  * SmartLnAfterCurlyOpen             Add line break when implicit curly block is added.
@@ -289,7 +290,7 @@ $d = new D();
 
 ### Troubleshooting
 - Be sure you can run PHP from the command line.
-- If you need support, please open an issue at [php.tools issues](https://github.com/phpfmt/php.tools/issues)
+- If you need support, please open an issue at [fmt issues](https://github.com/phpfmt/fmt/issues)
 
 ### The Most FAQ
 
