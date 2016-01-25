@@ -95,6 +95,7 @@ Prefer using the toggle options at command palette. However you might find yours
  * LeftWordWrap                      Word wrap at 80 columns - left justify.
  * LongArray                         Convert short to long arrays.
  * MergeElseIf                       Merge if with else.
+ * SplitElseIf                       Merge if with else.
  * MergeNamespaceWithOpenTag         Ensure there is no more than one linebreak before namespace
  * MildAutoPreincrement              Automatically convert postincrement to preincrement. (Deprecated pass. Use AutoPreincrement instead).
  * OrganizeClass                     Organize class, interface and trait structure.
