@@ -56,16 +56,13 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
 
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
 
-    dirnm = ""
-    uri = ""
-    if force is False:
-        uri = view.file_name()
-        dirnm, sfn = os.path.split(uri)
-        ext = os.path.splitext(uri)[1][1:]
+    uri = view.file_name()
+    dirnm, sfn = os.path.split(uri)
+    ext = os.path.splitext(uri)[1][1:]
 
-        if "php" != ext and not ext in additional_extensions:
-            print_debug("phpfmt: not a PHP file")
-            return False
+    if force is False and "php" != ext and not ext in additional_extensions:
+        print_debug("phpfmt: not a PHP file")
+        return False
 
     if "" != ignore_list:
         if type(ignore_list) is not list:
