@@ -31,5 +31,7 @@
     {"caption": "phpfmt: toggle PHP 5.5 compatibility mode", "command": "toggle", "args": {"option":"php55compat"}},
 
     {"caption": "phpfmt: enable/disable additional transformations", "command": "toggle_pass_menu" },
-    {"caption": "phpfmt: troubleshoot information", "command": "debug_env"}
+    {"caption": "phpfmt: troubleshoot information", "command": "debug_env"},
+
+    {"caption": "phpfmt: update PHP binary path", "command": "update_php_bin"}
 ]

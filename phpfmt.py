@@ -910,6 +910,15 @@ class ToggleCommand(sublime_plugin.TextCommand):
 
         sublime.save_settings('phpfmt.sublime-settings')
 
+class UpdatePhpBinCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        def execute(text):
+            s = sublime.load_settings('phpfmt.sublime-settings')
+            s.set("php_bin", text)
+
+        s = sublime.load_settings('phpfmt.sublime-settings')
+        self.view.window().show_input_panel('Refactor From:', s.get("php_bin", ""), execute, None, None)
+
 class RefactorCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         def execute(text):
