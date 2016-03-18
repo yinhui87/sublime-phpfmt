@@ -10,7 +10,7 @@
     {"caption": "phpfmt: toggle autocomplete", "command": "toggle", "args": {"option":"autocomplete"}},
     {"caption": "phpfmt: toggle dependency autoimport", "command": "toggle", "args": {"option":"autoimport"}},
     {"caption": "phpfmt: toggle format on save", "command": "toggle", "args": {"option":"format_on_save"}},
-    
+
     {"caption": "phpfmt: toggle PSR1 - Class and Methods names", "command": "toggle", "args": {"option":"psr1_naming"}},
     {"caption": "phpfmt: toggle PSR1", "command": "toggle", "args": {"option":"psr1"}},
     {"caption": "phpfmt: toggle PSR2", "command": "toggle", "args": {"option":"psr2"}},
@@ -23,8 +23,6 @@
     {"caption": "phpfmt: look for .php.tools.ini", "command": "toggle", "args": {"option":"readini"}},
     {"caption": "phpfmt: reorganize content of class", "command": "order_method"},
     {"caption": "phpfmt: refactor", "command": "refactor"},
-
-    {"caption": "phpfmt: toggle PHP 5.5 compatibility mode", "command": "toggle", "args": {"option":"php55compat"}},
 
     {"caption": "phpfmt: enable/disable additional transformations", "command": "toggle_pass_menu" },
     {"caption": "phpfmt: troubleshoot information", "command": "debug_env"},
