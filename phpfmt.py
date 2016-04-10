@@ -49,6 +49,8 @@ def dofmt(eself, eview, sgter = None, src = None, force = False):
     excludes = getSetting( view, s, "excludes", [])
 
     php_bin = getSetting( view, s, "php_bin", "php")
+    if not os.path.isabs(php_bin):
+        php_bin=os.path.abspath(php_bin)
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
@@ -277,6 +279,8 @@ def dogeneratephpdoc(eself, eview):
     passes = s.get("passes", [])
 
     php_bin = s.get("php_bin", "php")
+    if not os.path.isabs(php_bin):
+        php_bin=os.path.abspath(php_bin)
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
@@ -384,6 +388,8 @@ def doreordermethod(eself, eview):
     passes = s.get("passes", [])
 
     php_bin = s.get("php_bin", "php")
+    if not os.path.isabs(php_bin):
+        php_bin=os.path.abspath(php_bin)
     formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
     config_file = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "php.tools.ini")
@@ -487,6 +493,8 @@ def dorefactor(eself, eview, refactor_from = None, refactor_to = None):
     short_array = s.get("short_array", False)
     merge_else_if = s.get("merge_else_if", False)
     php_bin = s.get("php_bin", "php")
+    if not os.path.isabs(php_bin):
+        php_bin=os.path.abspath(php_bin)
     refactor_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "refactor.php")
     additional_extensions = s.get("additional_extensions", [])
 
@@ -644,6 +652,8 @@ class AnalyseThisCommand(sublime_plugin.TextCommand):
 
         s = sublime.load_settings('phpfmt.sublime-settings')
         php_bin = s.get("php_bin", "php")
+        if not os.path.isabs(php_bin):
+            php_bin=os.path.abspath(php_bin)
         oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
 
         uri = self.view.file_name()
@@ -703,6 +713,8 @@ class CalltipCommand(sublime_plugin.TextCommand):
         lastCalltip = lookTerm
 
         php_bin = s.get("php_bin", "php")
+        if not os.path.isabs(php_bin):
+            php_bin=os.path.abspath(php_bin)
         oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
 
         uri = self.view.file_name()
@@ -740,6 +752,8 @@ class DebugEnvCommand(sublime_plugin.TextCommand):
         s = sublime.load_settings('phpfmt.sublime-settings')
 
         php_bin = s.get("php_bin", "php")
+        if not os.path.isabs(php_bin):
+            php_bin=os.path.abspath(php_bin)
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
         s = debugEnvironment(php_bin, formatter_path)
@@ -808,6 +822,8 @@ class ToggleExcludeMenuCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         s = sublime.load_settings('phpfmt.sublime-settings')
         php_bin = s.get("php_bin", "php")
+        if not os.path.isabs(php_bin):
+            php_bin=os.path.abspath(php_bin)
         formatter_path = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "fmt.phar")
 
         cmd_passes = [php_bin,formatter_path,'--list-simple'];
@@ -947,6 +963,8 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
                 self.msgFile.window().run_command('close_file')
             s = sublime.load_settings('phpfmt.sublime-settings')
             php_bin = s.get("php_bin", "php")
+            if not os.path.isabs(php_bin):
+                php_bin=os.path.abspath(php_bin)
             oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
             cmdOracle = [php_bin]
             cmdOracle.append(oraclePath)
@@ -975,6 +993,8 @@ class BuildOracleCommand(sublime_plugin.TextCommand):
         view = self.view
         s = sublime.load_settings('phpfmt.sublime-settings')
         php_bin = s.get("php_bin", "php")
+        if not os.path.isabs(php_bin):
+            php_bin=os.path.abspath(php_bin)
 
         uri = view.file_name()
         oracleDirNm, sfn = os.path.split(uri)
@@ -1081,6 +1101,8 @@ class PHPFmtComplete(sublime_plugin.EventListener):
             ))
 
         php_bin = s.get("php_bin", "php")
+        if not os.path.isabs(php_bin):
+            php_bin=os.path.abspath(php_bin)
         oraclePath = os.path.join(dirname(realpath(sublime.packages_path())), "Packages", "phpfmt", "oracle.php")
         cmdOracle = [php_bin]
         cmdOracle.append(oraclePath)
